@@ -1,0 +1,46 @@
+<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark background -->
+  <rect width="256" height="256" fill="#0a0e27"/>
+
+  <!-- Background circle -->
+  <circle cx="128" cy="128" r="120" fill="#1a1f35" stroke="#60a5fa" stroke-width="2"/>
+
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="grad2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#a78bfa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Left code bracket -->
+  <path d="M 70 80 L 90 100 L 90 156 L 70 176"
+        fill="none"
+        stroke="url(#grad1)"
+        stroke-width="6"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Right code bracket -->
+  <path d="M 186 80 L 166 100 L 166 156 L 186 176"
+        fill="none"
+        stroke="url(#grad2)"
+        stroke-width="6"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <!-- Center neural dots -->
+  <circle cx="128" cy="100" r="5" fill="#60a5fa"/>
+  <circle cx="115" cy="128" r="5" fill="#a78bfa"/>
+  <circle cx="141" cy="128" r="5" fill="#a78bfa"/>
+  <circle cx="128" cy="156" r="5" fill="#60a5fa"/>
+
+  <!-- Connection lines -->
+  <line x1="128" y1="100" x2="115" y2="128" stroke="#60a5fa" stroke-width="1.5" opacity="0.4"/>
+  <line x1="128" y1="100" x2="141" y2="128" stroke="#60a5fa" stroke-width="1.5" opacity="0.4"/>
+  <line x1="115" y1="128" x2="128" y2="156" stroke="#a78bfa" stroke-width="1.5" opacity="0.4"/>
+  <line x1="141" y1="128" x2="128" y2="156" stroke="#a78bfa" stroke-width="1.5" opacity="0.4"/>
+</svg>

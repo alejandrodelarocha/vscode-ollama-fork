@@ -5,6 +5,7 @@
   "description": "VS Code fork with integrated Ollama code completion using GPU-accelerated qwen3:14b model",
   "publisher": "rocha-studios",
   "license": "MIT",
+  "icon": "assets/logo.svg",
   "homepage": "https://github.com/alejandrodelarocha/vscode-ollama-fork",
   "repository": {
     "type": "git",
