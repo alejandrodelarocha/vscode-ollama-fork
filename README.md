@@ -265,7 +265,9 @@ MIT (same as VS Code)
 
 - 🐙 GitHub: https://github.com/alejandrodelarocha/vscode-ollama-fork
 - 📊 Issues: https://github.com/alejandrodelarocha/vscode-ollama-fork/issues
-- 📚 Docs: ./OLLAMA_INTEGRATION.md
+- 📚 Architecture: ./OLLAMA_INTEGRATION.md
+- 🎨 Logo Design: ./LOGO_DESIGN.md
+- 📝 WordPress Guide: ./docs/WORDPRESS_INTEGRATION.md
 - 🚀 Releases: https://releases.rochastudios.ai/vscode-ollama/
 
 ---
