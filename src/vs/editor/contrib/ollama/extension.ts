@@ -19,7 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Create providers
   provider = createOllamaProvider();
   qaAnalyzer = createAutoQAAnalyzer();
-  suggestionEngine = createSuggestionEngine(context);
+  suggestionEngine = createSuggestionEngine();
   diagnosticCollection = vscode.languages.createDiagnosticCollection('ollama-qa');
   context.subscriptions.push(diagnosticCollection);
 

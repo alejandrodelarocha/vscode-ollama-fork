@@ -4,7 +4,7 @@
  */
 
 import * as axios from 'axios';
-import { CancellationToken, InlineCompletionItem, InlineCompletionItemProvider, Position, Range, TextDocument } from 'vscode';
+import { CancellationToken, InlineCompletionItem, InlineCompletionItemProvider, Position, TextDocument } from 'vscode';
 import { ContextAnalyzer } from './contextAnalyzer';
 
 interface OllamaConfig {
@@ -32,7 +32,7 @@ export class OllamaInlineCompletionProvider implements InlineCompletionItemProvi
   async provideInlineCompletionItems(
     document: TextDocument,
     position: Position,
-    context: any,
+    _completionContext: any,
     token: CancellationToken
   ): Promise<InlineCompletionItem[]> {
     // Debounce rapid requests

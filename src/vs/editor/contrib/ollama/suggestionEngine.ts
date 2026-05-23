@@ -22,7 +22,7 @@ export class SuggestionEngine {
   private dailySuggestionCount = 0;
   private lastResetDate = new Date().toDateString();
 
-  constructor(private context: vscode.ExtensionContext) {
+  constructor() {
     this.resetDailyCount();
   }
 
@@ -57,10 +57,6 @@ export class SuggestionEngine {
   }
 
   private buildSuggestions(): Suggestion[] {
-    const isQAEnabled = vscode.workspace
-      .getConfiguration('vscodeOllama')
-      .get('qaEnabled', true);
-
     const suggestions: Suggestion[] = [
       {
         id: 'qa-enabled',
@@ -191,8 +187,7 @@ export class SuggestionEngine {
 
   private async presentSuggestion(suggestion: Suggestion): Promise<void> {
     const choice = await vscode.window.showInformationMessage(
-      `${suggestion.icon} ${suggestion.title}`,
-      suggestion.description,
+      `${suggestion.icon} ${suggestion.title}\n\n${suggestion.description}`,
       { title: 'Got it', isCloseAffordance: true },
       { title: 'Try it', isCloseAffordance: false }
     );
@@ -227,6 +222,6 @@ export class SuggestionEngine {
   }
 }
 
-export function createSuggestionEngine(context: vscode.ExtensionContext): SuggestionEngine {
-  return new SuggestionEngine(context);
+export function createSuggestionEngine(): SuggestionEngine {
+  return new SuggestionEngine();
 }
