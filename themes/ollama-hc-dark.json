@@ -1,0 +1,237 @@
+{
+  "name": "Ollama High Contrast Dark",
+  "type": "dark",
+  "colors": {
+    "editor.background": "#000000",
+    "editor.foreground": "#ffffff",
+    "editor.lineNumberColor": "#808080",
+    "editor.lineHighlightBackground": "#ffffff08",
+    "editor.selectionBackground": "#003366",
+    "editor.inlineCompletionsBackground": "#0a0a0a",
+    "editor.inlineCompletionsBorder": "#ffffff",
+    "editorInlineCompletions.foreground": "#ffffff",
+    "editorInlineCompletions.highlight": "#00ccff",
+    "editorSuggestWidget.background": "#1a1a1a",
+    "editorSuggestWidget.border": "#ffffff",
+    "editorSuggestWidget.foreground": "#ffffff",
+    "editorSuggestWidget.highlightForeground": "#00ccff",
+    "editorSuggestWidget.selectedBackground": "#003366",
+    "editorWidget.background": "#0a0a0a",
+    "editorWidget.border": "#ffffff",
+    "editorWidgetBorder.shadow": "#ffffff33",
+    "editorCursorForeground": "#00ccff",
+    "editorCursorBackground": "#003366",
+    "editorWhitespace.foreground": "#444444",
+    "editorLineNumber.foreground": "#666666",
+    "editorLineNumber.activeForeground": "#ffffff",
+    "editorBracketMatch.background": "#333333",
+    "editorBracketMatch.border": "#00ccff",
+    "statusBar.background": "#000000",
+    "statusBar.foreground": "#ffffff",
+    "statusBar.border": "#ffffff",
+    "statusBar.debuggingBackground": "#ffaa00",
+    "statusBar.debuggingForeground": "#000000",
+    "sideBar.background": "#000000",
+    "sideBar.foreground": "#ffffff",
+    "sideBar.border": "#ffffff",
+    "sideBarTitle.foreground": "#ffffff",
+    "sideBarSectionHeader.background": "#0a0a0a",
+    "sideBarSectionHeader.border": "#ffffff",
+    "activityBar.background": "#000000",
+    "activityBar.foreground": "#00ccff",
+    "activityBar.border": "#ffffff",
+    "activityBarBadge.background": "#ff0000",
+    "activityBarBadge.foreground": "#ffffff",
+    "terminal.background": "#000000",
+    "terminal.foreground": "#ffffff",
+    "terminal.ansiBlack": "#000000",
+    "terminal.ansiRed": "#ff0000",
+    "terminal.ansiGreen": "#00ff00",
+    "terminal.ansiYellow": "#ffff00",
+    "terminal.ansiBlue": "#0099ff",
+    "terminal.ansiMagenta": "#ff00ff",
+    "terminal.ansiCyan": "#00ffff",
+    "terminal.ansiWhite": "#ffffff",
+    "terminal.ansiBrightBlack": "#808080",
+    "terminal.ansiBrightRed": "#ff3333",
+    "terminal.ansiBrightGreen": "#33ff33",
+    "terminal.ansiBrightYellow": "#ffff33",
+    "terminal.ansiBrightBlue": "#33ccff",
+    "terminal.ansiBrightMagenta": "#ff33ff",
+    "terminal.ansiBrightCyan": "#33ffff",
+    "terminal.ansiBrightWhite": "#ffffff",
+    "button.background": "#0099ff",
+    "button.foreground": "#000000",
+    "button.hoverBackground": "#00ccff",
+    "input.background": "#1a1a1a",
+    "input.border": "#ffffff",
+    "input.foreground": "#ffffff",
+    "input.placeholderForeground": "#999999",
+    "badge.background": "#003366",
+    "badge.foreground": "#00ccff",
+    "progressBar.background": "#00ccff",
+    "notificationCenter.border": "#ffffff",
+    "notificationLink.foreground": "#00ccff",
+    "notifications.background": "#1a1a1a",
+    "notifications.border": "#ffffff",
+    "notifications.foreground": "#ffffff",
+    "notificationsErrorIcon.foreground": "#ff0000",
+    "notificationsWarningIcon.foreground": "#ffaa00",
+    "notificationsInfoIcon.foreground": "#00ccff",
+    "gitDecoration.addedResourceForeground": "#00ff00",
+    "gitDecoration.modifiedResourceForeground": "#ffff00",
+    "gitDecoration.deletedResourceForeground": "#ff0000",
+    "gitDecoration.renamedResourceForeground": "#00ccff",
+    "gitDecoration.untrackedResourceForeground": "#cccccc",
+    "gitDecoration.ignoredResourceForeground": "#666666",
+    "gitDecoration.conflictingResourceForeground": "#ff00ff",
+    "diffEditor.insertedTextBackground": "#003300",
+    "diffEditor.insertedTextBorder": "#00ff00",
+    "diffEditor.removedTextBackground": "#330000",
+    "diffEditor.removedTextBorder": "#ff0000"
+  },
+  "tokenColors": [
+    {
+      "name": "Comment",
+      "scope": ["comment"],
+      "settings": {
+        "foreground": "#999999"
+      }
+    },
+    {
+      "name": "String",
+      "scope": ["string"],
+      "settings": {
+        "foreground": "#00ff00"
+      }
+    },
+    {
+      "name": "Number",
+      "scope": ["constant.numeric"],
+      "settings": {
+        "foreground": "#ffaa00"
+      }
+    },
+    {
+      "name": "Built-in constant",
+      "scope": ["constant.language"],
+      "settings": {
+        "foreground": "#ff0000"
+      }
+    },
+    {
+      "name": "User-defined constant",
+      "scope": ["constant.character", "constant.other"],
+      "settings": {
+        "foreground": "#ff0000"
+      }
+    },
+    {
+      "name": "Variable",
+      "scope": ["variable"],
+      "settings": {
+        "foreground": "#ffffff"
+      }
+    },
+    {
+      "name": "Keyword",
+      "scope": ["keyword"],
+      "settings": {
+        "foreground": "#ff00ff"
+      }
+    },
+    {
+      "name": "Storage",
+      "scope": ["storage"],
+      "settings": {
+        "foreground": "#ff00ff"
+      }
+    },
+    {
+      "name": "Storage type",
+      "scope": ["storage.type"],
+      "settings": {
+        "foreground": "#00ccff"
+      }
+    },
+    {
+      "name": "Class name",
+      "scope": ["entity.name.class"],
+      "settings": {
+        "foreground": "#00ccff"
+      }
+    },
+    {
+      "name": "Function name",
+      "scope": ["entity.name.function"],
+      "settings": {
+        "foreground": "#00ccff"
+      }
+    },
+    {
+      "name": "Function argument",
+      "scope": ["variable.parameter"],
+      "settings": {
+        "foreground": "#ffff00"
+      }
+    },
+    {
+      "name": "Tag name",
+      "scope": ["entity.name.tag"],
+      "settings": {
+        "foreground": "#ff0000"
+      }
+    },
+    {
+      "name": "Tag attribute",
+      "scope": ["entity.other.attribute-name"],
+      "settings": {
+        "foreground": "#ffff00"
+      }
+    },
+    {
+      "name": "Library function",
+      "scope": ["support.function"],
+      "settings": {
+        "foreground": "#00ccff"
+      }
+    },
+    {
+      "name": "Library constant",
+      "scope": ["support.constant"],
+      "settings": {
+        "foreground": "#ff0000"
+      }
+    },
+    {
+      "name": "Library class/type",
+      "scope": ["support.type", "support.class"],
+      "settings": {
+        "foreground": "#00ccff"
+      }
+    },
+    {
+      "name": "Library variable",
+      "scope": ["support.other.variable"],
+      "settings": {
+        "foreground": "#ffffff"
+      }
+    },
+    {
+      "name": "Invalid",
+      "scope": ["invalid"],
+      "settings": {
+        "foreground": "#000000",
+        "background": "#ff0000"
+      }
+    },
+    {
+      "name": "Ollama Completion - Suggestion",
+      "scope": ["string.ollama-suggestion"],
+      "settings": {
+        "foreground": "#00ccff",
+        "fontStyle": "italic"
+      }
+    }
+  ]
+}

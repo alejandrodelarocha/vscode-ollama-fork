@@ -1,0 +1,169 @@
+{
+  "name": "vscode-ollama",
+  "version": "1.0.0",
+  "displayName": "VS Code Ollama Fork",
+  "description": "VS Code fork with integrated Ollama code completion using GPU-accelerated qwen3:14b model",
+  "publisher": "rocha-studios",
+  "license": "MIT",
+  "homepage": "https://github.com/YOUR_USERNAME/vscode-ollama-fork",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/vscode-ollama-fork.git"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "AI",
+    "Code Completion",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "ollama",
+    "ai",
+    "code-completion",
+    "gpu",
+    "qwen3",
+    "local-ai",
+    "private"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./src/vs/editor/contrib/ollama/extension.ts",
+  "contributes": {
+    "themes": [
+      {
+        "label": "Ollama Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/ollama-dark.json"
+      },
+      {
+        "label": "Ollama Light",
+        "uiTheme": "vs",
+        "path": "./themes/ollama-light.json"
+      },
+      {
+        "label": "Ollama High Contrast Light",
+        "uiTheme": "hc-light",
+        "path": "./themes/ollama-hc-light.json"
+      },
+      {
+        "label": "Ollama High Contrast Dark",
+        "uiTheme": "hc-black",
+        "path": "./themes/ollama-hc-dark.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "vscode-ollama.toggle",
+        "title": "Toggle Ollama Completions",
+        "category": "Ollama"
+      },
+      {
+        "command": "vscode-ollama.checkStatus",
+        "title": "Check Ollama Status",
+        "category": "Ollama"
+      },
+      {
+        "command": "vscode-ollama.toggleQA",
+        "title": "Toggle Ollama Auto QA",
+        "category": "Ollama"
+      }
+    ],
+    "configuration": {
+      "title": "Ollama Code Completion",
+      "properties": {
+        "vscodeOllama.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Ollama code completion"
+        },
+        "vscodeOllama.host": {
+          "type": "string",
+          "default": "http://142.54.161.210",
+          "description": "Ollama GPU server host"
+        },
+        "vscodeOllama.port": {
+          "type": "number",
+          "default": 11434,
+          "description": "Ollama GPU server port"
+        },
+        "vscodeOllama.model": {
+          "type": "string",
+          "default": "qwen3:14b",
+          "description": "Ollama model to use for completions",
+          "enum": [
+            "qwen3:14b",
+            "mistral:7b",
+            "neural-chat",
+            "llama3.1:70b"
+          ]
+        },
+        "vscodeOllama.temperature": {
+          "type": "number",
+          "default": 0.3,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Temperature for completion generation (0.0-1.0)"
+        },
+        "vscodeOllama.maxTokens": {
+          "type": "number",
+          "default": 100,
+          "minimum": 10,
+          "maximum": 500,
+          "description": "Maximum tokens to generate per completion"
+        },
+        "vscodeOllama.contextLines": {
+          "type": "number",
+          "default": 50,
+          "minimum": 10,
+          "maximum": 200,
+          "description": "Number of context lines before cursor to include"
+        },
+        "vscodeOllama.debounceMs": {
+          "type": "number",
+          "default": 300,
+          "minimum": 100,
+          "maximum": 2000,
+          "description": "Debounce delay in milliseconds for completion requests"
+        },
+        "vscodeOllama.timeout": {
+          "type": "number",
+          "default": 5000,
+          "minimum": 1000,
+          "maximum": 30000,
+          "description": "Request timeout in milliseconds"
+        },
+        "vscodeOllama.qaEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic code quality analysis"
+        },
+        "vscodeOllama.qaTimeout": {
+          "type": "number",
+          "default": 10000,
+          "minimum": 5000,
+          "maximum": 60000,
+          "description": "QA analysis timeout in milliseconds"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -p ./ -w",
+    "test": "node ./node_modules/vscode/bin/test",
+    "lint": "eslint src/",
+    "build": "./scripts/build.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0",
+    "eslint": "^8.54.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
