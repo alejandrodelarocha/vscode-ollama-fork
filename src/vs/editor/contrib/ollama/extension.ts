@@ -6,9 +6,11 @@
 import * as vscode from 'vscode';
 import { createOllamaProvider } from './ollamaProvider';
 import { createAutoQAAnalyzer, AutoQAAnalyzer } from './qaAnalyzer';
+import { createSuggestionEngine, SuggestionEngine } from './suggestionEngine';
 
 let provider: any;
 let qaAnalyzer: AutoQAAnalyzer;
+let suggestionEngine: SuggestionEngine;
 let diagnosticCollection: vscode.DiagnosticCollection;
 
 export function activate(context: vscode.ExtensionContext) {
@@ -17,8 +19,17 @@ export function activate(context: vscode.ExtensionContext) {
   // Create providers
   provider = createOllamaProvider();
   qaAnalyzer = createAutoQAAnalyzer();
+  suggestionEngine = createSuggestionEngine(context);
   diagnosticCollection = vscode.languages.createDiagnosticCollection('ollama-qa');
   context.subscriptions.push(diagnosticCollection);
+
+  // Start daily suggestions
+  const showSuggestions = vscode.workspace
+    .getConfiguration('vscodeOllama')
+    .get('showDailySuggestions', true);
+  if (showSuggestions) {
+    suggestionEngine.startDailyReminders();
+  }
 
   // Register inline completion provider for all languages
   const selector = { scheme: 'file' };

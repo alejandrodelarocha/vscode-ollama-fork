@@ -168,6 +168,30 @@ Enable/disable in settings:
 - `Ollama: Toggle Ollama Auto QA` — Enable/disable code quality analysis
 - `Ollama: Check Ollama Status` — Verify connection to Ollama server
 
+## Daily Suggestions (Lovable-Style)
+
+Get 5 contextual tips and feature suggestions each day, spaced throughout your workflow.
+
+### What You'll See
+- ✨ Feature discovery prompts
+- ⚙️ Configuration recommendations
+- 📚 Tips for better completions
+- 🎨 Theme and appearance suggestions
+- 💡 Productivity hacks
+
+### Control It
+```json
+{
+  "vscodeOllama.showDailySuggestions": true
+}
+```
+
+Suggestions appear:
+- First one: 5 minutes after startup
+- Then: One per hour (max 5/day)
+- Resets: Midnight each day
+- Click "Try it" to apply the suggestion instantly
+
 ## Troubleshooting
 
 ### "No completions appearing"

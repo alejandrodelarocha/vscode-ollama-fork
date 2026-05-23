@@ -146,6 +146,11 @@
           "minimum": 5000,
           "maximum": 60000,
           "description": "QA analysis timeout in milliseconds"
+        },
+        "vscodeOllama.showDailySuggestions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show 5 helpful suggestions throughout the day (Lovable-style)"
         }
       }
     }
