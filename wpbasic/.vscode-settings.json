@@ -1,0 +1,47 @@
+{
+  "wpbasic.enabled": true,
+  "wpbasic.host": "http://142.54.161.210",
+  "wpbasic.port": 11434,
+  "wpbasic.model": "qwen3:14b",
+  "wpbasic.temperature": 0.3,
+  "wpbasic.maxTokens": 120,
+  "wpbasic.contextLines": 100,
+  "wpbasic.debounceMs": 250,
+  "wpbasic.qaEnabled": true,
+  "wpbasic.qaSecurityFocus": true,
+  "wpbasic.showDailySuggestions": true,
+
+  "workbench.colorTheme": "Ollama Dark",
+
+  "[php]": {
+    "editor.defaultFormatter": "phpcs",
+    "editor.formatOnSave": true,
+    "editor.wordBasedSuggestions": false
+  },
+
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true
+  },
+
+  "search.exclude": {
+    "**/wp-content/plugins/*/node_modules": true,
+    "**/wp-content/themes/*/node_modules": true,
+    "**/wp-includes": true,
+    "**/wp-admin": true
+  },
+
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true
+}

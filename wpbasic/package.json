@@ -1,0 +1,152 @@
+{
+  "name": "wpbasic",
+  "version": "1.0.0",
+  "displayName": "WPBasic - WordPress AI Development",
+  "description": "VS Code Ollama optimized for WordPress theme and plugin development",
+  "publisher": "rocha-studios",
+  "license": "MIT",
+  "icon": "../assets/logo.svg",
+  "homepage": "https://github.com/alejandrodelarocha/vscode-ollama-fork/tree/main/wpbasic",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alejandrodelarocha/vscode-ollama-fork.git",
+    "directory": "wpbasic"
+  },
+  "keywords": [
+    "wordpress",
+    "php",
+    "ai-development",
+    "code-completion",
+    "ollama",
+    "theme-development",
+    "plugin-development"
+  ],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "AI",
+    "Code Completion"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "../out/vs/editor/contrib/ollama/extension.js",
+  "contributes": {
+    "themes": [
+      {
+        "label": "Ollama Dark",
+        "uiTheme": "vs-dark",
+        "path": "../themes/ollama-dark.json"
+      },
+      {
+        "label": "Ollama Light",
+        "uiTheme": "vs",
+        "path": "../themes/ollama-light.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "vscode-ollama.toggle",
+        "title": "Toggle AI Completions",
+        "category": "WPBasic"
+      },
+      {
+        "command": "vscode-ollama.checkStatus",
+        "title": "Check GPU Server Status",
+        "category": "WPBasic"
+      },
+      {
+        "command": "vscode-ollama.toggleQA",
+        "title": "Toggle Code Quality Analysis",
+        "category": "WPBasic"
+      },
+      {
+        "command": "vscode-ollama.showSuggestions",
+        "title": "Show Daily Tips",
+        "category": "WPBasic",
+        "icon": "$(lightbulb)"
+      }
+    ],
+    "configuration": {
+      "title": "WPBasic - WordPress AI Development",
+      "properties": {
+        "wpbasic.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable WPBasic AI completions"
+        },
+        "wpbasic.host": {
+          "type": "string",
+          "default": "http://142.54.161.210",
+          "description": "Ollama GPU server host"
+        },
+        "wpbasic.port": {
+          "type": "number",
+          "default": 11434,
+          "description": "Ollama GPU server port"
+        },
+        "wpbasic.model": {
+          "type": "string",
+          "default": "qwen3:14b",
+          "enum": [
+            "qwen3:14b",
+            "mistral:7b",
+            "neural-chat",
+            "llama3.1:70b"
+          ],
+          "description": "Ollama model for completions"
+        },
+        "wpbasic.temperature": {
+          "type": "number",
+          "default": 0.3,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Temperature for PHP code generation (lower = more precise)"
+        },
+        "wpbasic.maxTokens": {
+          "type": "number",
+          "default": 120,
+          "minimum": 10,
+          "maximum": 500,
+          "description": "Maximum tokens per completion"
+        },
+        "wpbasic.contextLines": {
+          "type": "number",
+          "default": 100,
+          "minimum": 10,
+          "maximum": 200,
+          "description": "Lines of context for WordPress understanding"
+        },
+        "wpbasic.debounceMs": {
+          "type": "number",
+          "default": 250,
+          "minimum": 100,
+          "maximum": 2000,
+          "description": "Delay before requesting completion (lower = faster)"
+        },
+        "wpbasic.qaEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable WordPress security and quality checks"
+        },
+        "wpbasic.qaSecurityFocus": {
+          "type": "boolean",
+          "default": true,
+          "description": "Prioritize security checks (escaping, sanitization, nonces)"
+        },
+        "wpbasic.showDailySuggestions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show WordPress development tips daily"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "start": "code --extensionDevelopmentPath=..",
+    "compile": "tsc -p ../",
+    "watch": "tsc -p ../ -w"
+  }
+}
