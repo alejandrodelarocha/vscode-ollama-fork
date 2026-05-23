@@ -43,9 +43,11 @@ const vscode = __importStar(require("vscode"));
 const ollamaProvider_1 = require("./ollamaProvider");
 const qaAnalyzer_1 = require("./qaAnalyzer");
 const suggestionEngine_1 = require("./suggestionEngine");
+const suggestionPanel_1 = require("./suggestionPanel");
 let provider;
 let qaAnalyzer;
 let suggestionEngine;
+let suggestionPanel;
 let diagnosticCollection;
 function activate(context) {
     console.log('🚀 VS Code Ollama Extension activated');
@@ -53,14 +55,18 @@ function activate(context) {
     provider = (0, ollamaProvider_1.createOllamaProvider)();
     qaAnalyzer = (0, qaAnalyzer_1.createAutoQAAnalyzer)();
     suggestionEngine = (0, suggestionEngine_1.createSuggestionEngine)();
+    suggestionPanel = (0, suggestionPanel_1.createSuggestionPanel)(context.extensionUri);
     diagnosticCollection = vscode.languages.createDiagnosticCollection('ollama-qa');
     context.subscriptions.push(diagnosticCollection);
-    // Start daily suggestions
+    // Start daily suggestions with panel
     const showSuggestions = vscode.workspace
         .getConfiguration('vscodeOllama')
         .get('showDailySuggestions', true);
     if (showSuggestions) {
-        suggestionEngine.startDailyReminders();
+        suggestionEngine.startDailyReminders(() => {
+            const suggestions = suggestionEngine.getSuggestions();
+            suggestionPanel.show(suggestions);
+        });
     }
     // Register inline completion provider for all languages
     const selector = { scheme: 'file' };
@@ -139,7 +145,12 @@ function activate(context) {
         const newState = !enabled ? 'enabled' : 'disabled';
         vscode.window.showInformationMessage(`Ollama QA ${newState}`);
     }));
-    console.log('✅ Ollama completions and QA ready');
+    // Register command to show suggestions panel
+    context.subscriptions.push(vscode.commands.registerCommand('vscode-ollama.showSuggestions', async () => {
+        const suggestions = suggestionEngine.getSuggestions();
+        suggestionPanel.show(suggestions);
+    }));
+    console.log('✅ Ollama completions, QA, and daily tips ready');
 }
 function deactivate() {
     console.log('👋 VS Code Ollama Extension deactivated');

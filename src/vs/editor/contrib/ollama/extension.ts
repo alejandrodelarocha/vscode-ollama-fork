@@ -7,10 +7,12 @@ import * as vscode from 'vscode';
 import { createOllamaProvider } from './ollamaProvider';
 import { createAutoQAAnalyzer, AutoQAAnalyzer } from './qaAnalyzer';
 import { createSuggestionEngine, SuggestionEngine } from './suggestionEngine';
+import { createSuggestionPanel, SuggestionPanel } from './suggestionPanel';
 
 let provider: any;
 let qaAnalyzer: AutoQAAnalyzer;
 let suggestionEngine: SuggestionEngine;
+let suggestionPanel: SuggestionPanel;
 let diagnosticCollection: vscode.DiagnosticCollection;
 
 export function activate(context: vscode.ExtensionContext) {
@@ -20,15 +22,19 @@ export function activate(context: vscode.ExtensionContext) {
   provider = createOllamaProvider();
   qaAnalyzer = createAutoQAAnalyzer();
   suggestionEngine = createSuggestionEngine();
+  suggestionPanel = createSuggestionPanel(context.extensionUri);
   diagnosticCollection = vscode.languages.createDiagnosticCollection('ollama-qa');
   context.subscriptions.push(diagnosticCollection);
 
-  // Start daily suggestions
+  // Start daily suggestions with panel
   const showSuggestions = vscode.workspace
     .getConfiguration('vscodeOllama')
     .get('showDailySuggestions', true);
   if (showSuggestions) {
-    suggestionEngine.startDailyReminders();
+    suggestionEngine.startDailyReminders(() => {
+      const suggestions = suggestionEngine.getSuggestions();
+      suggestionPanel.show(suggestions);
+    });
   }
 
   // Register inline completion provider for all languages
@@ -146,7 +152,18 @@ export function activate(context: vscode.ExtensionContext) {
     )
   );
 
-  console.log('✅ Ollama completions and QA ready');
+  // Register command to show suggestions panel
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'vscode-ollama.showSuggestions',
+      async () => {
+        const suggestions = suggestionEngine.getSuggestions();
+        suggestionPanel.show(suggestions);
+      }
+    )
+  );
+
+  console.log('✅ Ollama completions, QA, and daily tips ready');
 }
 
 export function deactivate() {

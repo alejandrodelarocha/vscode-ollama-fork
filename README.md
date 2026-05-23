@@ -170,14 +170,27 @@ Enable/disable in settings:
 
 ## Daily Suggestions (Lovable-Style)
 
-Get 5 contextual tips and feature suggestions each day, spaced throughout your workflow.
+Get 5 contextual tips and feature suggestions each day in a persistent sidebar panel.
+
+### Layout
+- **Persistent Sidebar Panel** — Dedicated panel showing all daily tips
+- **Progress Bar** — Visual indicator of suggestions viewed (e.g., "2/5 viewed")
+- **Card-Based UI** — Each suggestion is an interactive card with icon, title, description
+- **Color-Coded Categories** — Visual distinction between feature/settings/tips/discovery
+- **Quick Actions** — "Try It" buttons execute suggestions instantly
+- **Dismiss** — Mark suggestions as done with × button
 
 ### What You'll See
-- ✨ Feature discovery prompts
-- ⚙️ Configuration recommendations
-- 📚 Tips for better completions
-- 🎨 Theme and appearance suggestions
-- 💡 Productivity hacks
+- ✨ Feature discovery prompts (cyan border)
+- ⚙️ Configuration recommendations (blue border)
+- 📚 Tips for better completions (purple border)
+- 🎨 Theme and appearance suggestions (green border)
+- ⚡ Productivity hacks (orange border)
+
+### Access It
+```
+Command Palette → "Ollama: Show Daily Tips"
+```
 
 ### Control It
 ```json
@@ -186,11 +199,11 @@ Get 5 contextual tips and feature suggestions each day, spaced throughout your w
 }
 ```
 
-Suggestions appear:
+Suggestions auto-load:
 - First one: 5 minutes after startup
 - Then: One per hour (max 5/day)
 - Resets: Midnight each day
-- Click "Try it" to apply the suggestion instantly
+- Always visible in sidebar when enabled
 
 ## Troubleshooting
 

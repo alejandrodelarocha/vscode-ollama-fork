@@ -22,7 +22,8 @@ export declare class SuggestionEngine {
     showRandomSuggestion(): Promise<void>;
     private buildSuggestions;
     private presentSuggestion;
-    startDailyReminders(): void;
+    getSuggestions(): Suggestion[];
+    startDailyReminders(onSuggestions?: (suggestions: Suggestion[]) => void): void;
     private scheduleNextReset;
 }
 export declare function createSuggestionEngine(): SuggestionEngine;

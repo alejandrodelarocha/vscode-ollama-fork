@@ -69,6 +69,12 @@
         "command": "vscode-ollama.toggleQA",
         "title": "Toggle Ollama Auto QA",
         "category": "Ollama"
+      },
+      {
+        "command": "vscode-ollama.showSuggestions",
+        "title": "Show Daily Tips",
+        "category": "Ollama",
+        "icon": "$(lightbulb)"
       }
     ],
     "configuration": {

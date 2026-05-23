@@ -1,1 +1,1 @@
-{"version":3,"file":"extension.d.ts","sourceRoot":"","sources":["../../../../../src/vs/editor/contrib/ollama/extension.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,OAAO,KAAK,MAAM,MAAM,QAAQ,CAAC;AAUjC,wBAAgB,QAAQ,CAAC,OAAO,EAAE,MAAM,CAAC,gBAAgB,QAsIxD;AAED,wBAAgB,UAAU,SAEzB"}
+{"version":3,"file":"extension.d.ts","sourceRoot":"","sources":["../../../../../src/vs/editor/contrib/ollama/extension.ts"],"names":[],"mappings":"AAAA;;;GAGG;AAEH,OAAO,KAAK,MAAM,MAAM,QAAQ,CAAC;AAYjC,wBAAgB,QAAQ,CAAC,OAAO,EAAE,MAAM,CAAC,gBAAgB,QAqJxD;AAED,wBAAgB,UAAU,SAEzB"}

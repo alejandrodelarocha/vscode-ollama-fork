@@ -205,11 +205,30 @@ class SuggestionEngine {
             await suggestion.action();
         }
     }
-    startDailyReminders() {
+    getSuggestions() {
+        return this.buildSuggestions();
+    }
+    startDailyReminders(onSuggestions) {
         // Show first suggestion after 5 minutes
-        setTimeout(() => this.showRandomSuggestion(), 300000);
+        setTimeout(() => {
+            if (onSuggestions) {
+                const suggestions = this.buildSuggestions();
+                onSuggestions(suggestions);
+            }
+            else {
+                this.showRandomSuggestion();
+            }
+        }, 300000);
         // Then show one every hour
-        setInterval(() => this.showRandomSuggestion(), this.suggestionInterval);
+        setInterval(() => {
+            if (onSuggestions) {
+                const suggestions = this.buildSuggestions();
+                onSuggestions(suggestions);
+            }
+            else {
+                this.showRandomSuggestion();
+            }
+        }, this.suggestionInterval);
         // Reset at midnight
         this.scheduleNextReset();
     }
