@@ -72,7 +72,7 @@ export VSCODE_OLLAMA_ENABLED=true
 ```bash
 node --version  # v18+
 npm --version   # v8+
-git clone https://github.com/YOUR_USERNAME/vscode-ollama-fork.git
+git clone https://github.com/alejandrodelarocha/vscode-ollama-fork.git
 cd vscode-ollama-fork
 ```
 
@@ -226,8 +226,8 @@ MIT (same as VS Code)
 
 ## Links
 
-- 🐙 GitHub: https://github.com/YOUR_USERNAME/vscode-ollama-fork
-- 📊 Issues: https://github.com/YOUR_USERNAME/vscode-ollama-fork/issues
+- 🐙 GitHub: https://github.com/alejandrodelarocha/vscode-ollama-fork
+- 📊 Issues: https://github.com/alejandrodelarocha/vscode-ollama-fork/issues
 - 📚 Docs: ./OLLAMA_INTEGRATION.md
 - 🚀 Releases: https://releases.rochastudios.ai/vscode-ollama/
 
