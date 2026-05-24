@@ -1,468 +1,269 @@
-# Monetization Deployment Guide
+# License Server Deployment Guide
 
-Complete setup for monetized VS Code Ollama & WPBasic.
+Complete guide to deploy Ollama VS Code license and subscription server.
 
-## Components
+## Overview
 
-1. **License Server** (`license-server.js`)
-   - User authentication (signup/login)
-   - License key management
-   - Subscription handling (Stripe)
-   - Credit system + tracking
-   - Usage analytics
+**License Server** handles:
+- User authentication (signup/login with JWT)
+- Subscription management (Stripe integration)
+- Credit system (pay-as-you-go)
+- License verification
+- Usage tracking and billing
 
-2. **Landing Pages**
-   - rochastudios.ai/ollama
-   - rochastudios.ai/wpbasic
-   - Pricing, features, call-to-action
+**Tech Stack:**
+- Express.js (Node.js)
+- SQLite3 (database)
+- Stripe API (payments)
+- JWT (authentication)
 
-3. **Extension Integration**
-   - License key verification
-   - Credit deduction per completion
-   - Subscription status checking
-   - Upgrade prompts
+## Prerequisites
 
-4. **Admin Dashboard**
-   - User analytics
-   - Revenue tracking
-   - Churn monitoring
-   - Support tools
+1. Node.js 16+ and npm
+2. Stripe Account (free tier OK for testing)
+3. Domain (for production)
+4. Server (Verpex, DigitalOcean, Heroku, etc.)
 
----
+## Local Development
 
-## Setup Steps
-
-### 1. Stripe Setup
-
-```bash
-# Create Stripe account at https://stripe.com
-
-# Get API keys from Dashboard → Developers → API Keys
-export STRIPE_SECRET_KEY="sk_live_..."
-export STRIPE_WEBHOOK_SECRET="whsec_..."
-
-# Set up Stripe products & prices
-# Free: No price (freemium)
-# Starter: $5/month (price_starter)
-# Professional: $15/month (price_pro)
-# Business: $50/month (price_business)
-```
-
-### 2. Environment Setup
-
-```bash
-# Create .env file
-cat > .env << EOF
-PORT=9979
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-JWT_SECRET=your-secret-key-here
-DB_PATH=./licenses.db
-FRONTEND_URL=https://rochastudios.ai
-EOF
-```
-
-### 3. Install Dependencies
+### 1. Setup
 
 ```bash
 cd monetization
-npm install express stripe sqlite3 better-sqlite3 jsonwebtoken
+npm install
+cp .env.example .env
 ```
 
-### 4. Deploy License Server
+### 2. Configure .env
+
+```
+PORT=3000
+DOMAIN=http://localhost:3000
+DB_PATH=./license.db
+JWT_SECRET=dev-secret-key
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+NODE_ENV=development
+```
+
+Get Stripe keys from https://dashboard.stripe.com/apikeys
+
+### 3. Run Server
 
 ```bash
-# Option A: PM2 (recommended)
-pm2 start license-server.js --name "ollama-license"
-pm2 save
-pm2 startup
-
-# Option B: Docker
-docker build -t ollama-license .
-docker run -p 9979:9979 -e STRIPE_SECRET_KEY=sk_live_... ollama-license
-
-# Option C: Manual
-node license-server.js
+npm start
+# Server running on http://localhost:3000
 ```
 
-### 5. Configure Stripe Webhooks
-
-```
-Stripe Dashboard → Developers → Webhooks
-
-Endpoint URL: https://your-domain.com/api/webhooks/stripe
-Events:
-  - customer.subscription.created
-  - customer.subscription.updated
-  - customer.subscription.deleted
-  - invoice.payment_succeeded
+Test:
+```bash
+curl http://localhost:3000/api/status
+# { "status": "ok", "version": "1.0.0" }
 ```
 
-### 6. Update Extension
+## Deployment to Verpex
 
-```typescript
-// src/vs/editor/contrib/ollama/extension.ts
+**Host:** 209.42.26.107  
+**Port:** 9979 (via Caddy reverse proxy)
 
-const LICENSE_SERVER = 'https://your-domain.com/api';
+### Steps:
 
-// On activation
-const licenseKey = await vscode.workspace.getConfiguration('vscodeOllama').get('licenseKey');
-const verified = await verifyLicense(licenseKey);
+1. **SSH to server**
+   ```bash
+   ssh root@209.42.26.107
+   ```
 
-// Before each completion request
-const credits = await getCreditsBalance();
-if (credits < 1) {
-  showUpgradePrompt();
-  return;
-}
+2. **Clone repo**
+   ```bash
+   cd /root && git clone https://github.com/alejandrodelarocha/vscode-ollama-fork.git
+   cd vscode-ollama-fork/monetization
+   ```
 
-// After completion
-await deductCredits(1);
+3. **Install dependencies**
+   ```bash
+   npm install --production
+   ```
+
+4. **Create .env**
+   ```bash
+   cat > .env << 'ENVEOF'
+   PORT=9979
+   DOMAIN=https://rochastudios.ai
+   DB_PATH=/root/ollama-license.db
+   JWT_SECRET=your-production-secret-key-64-chars-min
+   STRIPE_SECRET_KEY=sk_live_...
+   STRIPE_PUBLISHABLE_KEY=pk_live_...
+   STRIPE_WEBHOOK_SECRET=whsec_...
+   NODE_ENV=production
+   ENVEOF
+   chmod 600 .env
+   ```
+
+5. **Start with PM2**
+   ```bash
+   npm install -g pm2
+   pm2 start license-server.js --name "ollama-license" --env production
+   pm2 save
+   pm2 startup
+   ```
+
+6. **Configure Caddy**
+   Edit `/root/dynamic/Caddyfile`:
+   ```
+   license.rochastudios.ai {
+     reverse_proxy 127.0.0.1:9979
+   }
+   ```
+
+7. **Reload Caddy**
+   ```bash
+   docker exec caddy caddy reload --config /etc/caddy/Caddyfile
+   ```
+
+**Access:** https://license.rochastudios.ai/api/status
+
+### Monitoring
+
+```bash
+pm2 logs ollama-license      # View logs
+pm2 monit                     # Real-time stats
+pm2 restart ollama-license    # Restart
+pm2 status                    # Check status
 ```
 
----
+## Stripe Configuration
+
+### 1. Get API Keys
+
+Dashboard → Developers → API Keys:
+- Secret: sk_live_...
+- Publishable: pk_live_...
+
+### 2. Create Webhook
+
+Dashboard → Developers → Webhooks → Add endpoint:
+- URL: `https://license.rochastudios.ai/api/webhooks/stripe`
+- Events:
+  - checkout.session.completed
+  - payment_intent.succeeded
+
+Copy signing secret: whsec_...
 
 ## API Endpoints
 
-### Authentication
+### Auth
 
-**POST /auth/signup**
-```json
+```
+POST /api/auth/signup
 {
   "email": "user@example.com",
-  "name": "John Doe",
-  "product": "vscode-ollama"
+  "password": "password123"
 }
 
-Response:
+POST /api/auth/login
 {
-  "userId": "uuid",
-  "token": "jwt-token",
-  "licenseKey": "LL-...",
-  "tier": "free"
+  "email": "user@example.com",
+  "password": "password123"
 }
 ```
 
-**POST /auth/login**
-```json
-{
-  "email": "user@example.com",
-  "password": "password"
-}
+### Plans
+
 ```
-
-### Licensing
-
-**POST /license/verify**
-```json
-{
-  "licenseKey": "LL-...",
-  "product": "vscode-ollama"
-}
-
-Response:
-{
-  "valid": true,
-  "tier": "professional",
-  "expiresAt": "2024-12-31T23:59:59Z"
-}
+GET /api/plans
+# Returns: free, starter, professional, business, enterprise
 ```
 
 ### Subscriptions
 
-**GET /subscriptions/plans**
 ```
-Returns available tiers with pricing and features
-```
-
-**POST /subscriptions/checkout**
-```json
+POST /api/subscriptions/checkout
+Authorization: Bearer TOKEN
 {
   "tier": "professional"
-}
-
-Response:
-{
-  "sessionId": "cs_...",
-  "url": "https://checkout.stripe.com/..."
 }
 ```
 
 ### Credits
 
-**GET /credits/balance** (requires auth)
 ```
-Response:
+GET /api/credits/balance
+Authorization: Bearer TOKEN
+
+POST /api/credits/purchase
+Authorization: Bearer TOKEN
 {
-  "balance": 1500,
-  "usedThisMonth": 350
+  "amount": 50
+}
+
+POST /api/usage/deduct
+Authorization: Bearer TOKEN
+{
+  "licenseId": "lic_123",
+  "completions": 1
 }
 ```
 
-**POST /credits/use** (requires auth)
-```json
+### Licenses
+
+```
+POST /api/licenses/verify
+Authorization: Bearer TOKEN
 {
-  "amount": 1,
-  "type": "completion"
+  "licenseKey": "OLLAMA-xxxxx"
 }
 ```
 
-**POST /credits/purchase** (requires auth)
-```json
-{
-  "creditAmount": 500
-}
+## Pricing
+
+| Tier | Price | Completions | Features |
+|------|-------|-------------|----------|
+| Free | $0 | 50/day | Basic, Community |
+| Starter | $5/mo | 500/mo | Email support |
+| Professional | $15/mo | 2000/mo | Priority support |
+| Business | $50/mo | 10000/mo | 24/7 support |
+| Enterprise | Custom | Unlimited | Custom SLA |
+
+## Database Backup
+
+```bash
+# Manual backup
+cp /root/ollama-license.db /root/backups/license-$(date +%Y%m%d).db
+
+# Daily cron backup
+0 2 * * * cp /root/ollama-license.db /root/backups/license-$(date +\%Y\%m\%d).db
 ```
 
----
+## Security Checklist
 
-## Landing Page Template
+- [ ] JWT_SECRET is 64+ characters
+- [ ] Using STRIPE_LIVE keys (not test)
+- [ ] HTTPS only (via Caddy)
+- [ ] Rate limiting enabled
+- [ ] Database backups daily
+- [ ] Monitor suspicious activity
+- [ ] Never commit .env file
+- [ ] Log all payments
 
-### rochastudios.ai/ollama
+## Troubleshooting
 
-```html
-<header>
-  <nav>
-    <a href="/">Rocha Studios</a>
-    <a href="#features">Features</a>
-    <a href="#pricing">Pricing</a>
-    <a href="https://github.com/alejandrodelarocha/vscode-ollama-fork">GitHub</a>
-  </nav>
-</header>
-
-<hero>
-  <h1>VS Code Ollama</h1>
-  <p>AI-powered code completion. Local. Private. Fast.</p>
-  <button>Download Now</button>
-  <button>Pricing</button>
-</hero>
-
-<features>
-  <card>
-    <icon>✨</icon>
-    <h3>AI Completions</h3>
-    <p>Intelligent code suggestions as you type</p>
-  </card>
-  <card>
-    <icon>🚀</icon>
-    <h3>GPU-Accelerated</h3>
-    <p>Sub-second completions on dedicated hardware</p>
-  </card>
-  <card>
-    <icon>🔒</icon>
-    <h3>Fully Private</h3>
-    <p>No external APIs, all computation stays local</p>
-  </card>
-  <card>
-    <icon>🎨</icon>
-    <h3>4 Beautiful Themes</h3>
-    <p>Dark, Light, High Contrast variants</p>
-  </card>
-</features>
-
-<pricing>
-  <tier>
-    <name>Free</name>
-    <price>$0/month</price>
-    <features>
-      <li>50 completions/day</li>
-      <li>Auto QA</li>
-      <li>1 workspace</li>
-      <li>Community support</li>
-    </features>
-    <button>Get Started</button>
-  </tier>
-
-  <tier highlight>
-    <name>Professional</name>
-    <price>$15/month</price>
-    <features>
-      <li>2,000 completions/month</li>
-      <li>Advanced QA</li>
-      <li>Team collaboration</li>
-      <li>API access</li>
-      <li>Priority support</li>
-    </features>
-    <button>Start Free Trial</button>
-  </tier>
-
-  <tier>
-    <name>Business</name>
-    <price>$50/month</price>
-    <features>
-      <li>10,000 completions/month</li>
-      <li>Unlimited teams</li>
-      <li>Custom AI models</li>
-      <li>Dedicated support</li>
-    </features>
-    <button>Contact Sales</button>
-  </tier>
-</pricing>
-
-<faq>
-  <q>How much does it cost?</q>
-  <a>Free forever with 50 completions/day, or $5-50/month for unlimited</a>
-
-  <q>Is my code private?</q>
-  <a>Yes! All computation stays on your GPU server. No data sent to us.</a>
-
-  <q>What AI model does it use?</q>
-  <a>Ollama qwen3:14b - fully local, no cloud APIs</a>
-
-  <q>Can I self-host?</q>
-  <a>Yes! Enterprise plan includes on-premises deployment</a>
-</faq>
-
-<cta>
-  <h2>Ready to code with AI?</h2>
-  <p>Get started free. No credit card required.</p>
-  <button href="/auth/signup">Sign Up Now</button>
-</cta>
-
-<footer>
-  <links>
-    <a href="https://github.com/...">GitHub</a>
-    <a href="https://docs">Docs</a>
-    <a href="https://support">Support</a>
-    <a href="https://privacy">Privacy</a>
-  </links>
-  <copyright>© 2026 Rocha Studios. All rights reserved.</copyright>
-</footer>
+**Port in use:**
+```bash
+lsof -i :9979
+kill -9 <PID>
 ```
 
-### rochastudios.ai/wpbasic (Similar, WordPress-focused)
+**Database locked:**
+```bash
+pm2 restart ollama-license
+```
+
+**Webhook failing:**
+1. Check webhook secret in .env
+2. Verify firewall allows port 443
+3. Test in Stripe Dashboard
 
 ---
 
-## Marketing Strategy
-
-### Launch Phase (Week 1-2)
-
-1. **ProductHunt Launch**
-   - Post on ProductHunt
-   - Engage with comments
-   - Target: Top 5 product
-
-2. **GitHub**
-   - Release v1.0.0 + WPBasic v1.0.0
-   - Add topic tags
-   - Get on awesome-lists
-
-3. **Reddit**
-   - r/programming
-   - r/PHP
-   - r/WordPress (for WPBasic)
-   - r/vscode
-
-4. **Dev Communities**
-   - Dev.to articles
-   - Hacker News
-   - Twitter threads
-
-### Growth Phase (Month 1-3)
-
-1. **SEO**
-   - "AI code completion for WordPress"
-   - "Local Ollama IDE"
-   - "Private code suggestions"
-
-2. **Partnerships**
-   - WordPress hosting companies
-   - Dev agencies (referral program)
-   - Educational institutions
-
-3. **Content**
-   - Blog posts
-   - Tutorial videos
-   - Use case guides
-
-### Retention Phase (Month 3+)
-
-1. **Email**
-   - Newsletter (usage tips, new features)
-   - Upgrade emails
-   - Re-engagement campaigns
-
-2. **In-Product**
-   - Daily tips (already built!)
-   - Feature announcements
-   - Credit promotional offers
-
-3. **Community**
-   - Discord/Slack
-   - Monthly webinars
-   - User surveys
-
----
-
-## Revenue Projections
-
-**Conservative Y1**: $14,400 (100 paid users)
-**Aggressive Y1**: $90,000 (500 paid users)
-
-**Break-even**: Month 4-6 depending on CAC
-
----
-
-## Support Infrastructure
-
-### Tier 1: Free/Starter
-- Community Discord
-- GitHub issues
-- Email (48h response)
-
-### Tier 2: Professional
-- Priority email (24h)
-- Phone support (business hours)
-- Slack integration
-
-### Tier 3: Business/Enterprise
-- Dedicated Slack
-- Phone support (24h)
-- Custom SLAs
-- Account manager
-
----
-
-## Monitoring & Analytics
-
-Track:
-- Signups per day
-- Conversion rate (free → paid)
-- Monthly churn rate
-- ARPU (Average Revenue Per User)
-- CAC (Customer Acquisition Cost)
-- LTV (Lifetime Value)
-- Feature usage
-- Credit consumption
-
-Dashboard: Stripe + custom analytics
-
----
-
-## Legal/Compliance
-
-- [ ] Terms of Service
-- [ ] Privacy Policy
-- [ ] GDPR compliance (EU users)
-- [ ] Tax registration (sales tax)
-- [ ] Payment processor compliance (PCI DSS via Stripe)
-- [ ] Refund policy
-- [ ] License agreement
-
----
-
-## Timeline
-
-**Week 1**: Set up Stripe + License server  
-**Week 2**: Deploy landing pages  
-**Week 3**: Integrate with extensions  
-**Week 4**: Launch beta (friends/early users)  
-**Week 5**: ProductHunt launch  
-**Week 6+**: Growth & iteration  
-
----
-
-**Status**: Ready for implementation
-
-Start with free tier to build user base, then convert to paid tiers.
+Version: 1.0.0 | Status: Ready for deployment

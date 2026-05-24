@@ -1,542 +1,474 @@
-/**
- * VS Code Ollama License & Credit Server
- * Handles subscription management, license verification, credit tracking
- */
-
 const express = require('express');
-const Stripe = require('stripe');
 const sqlite3 = require('better-sqlite3');
-const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_...');
+const cors = require('cors');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
-// Configuration
-const PORT = process.env.PORT || 9979;
-const STRIPE_KEY = process.env.STRIPE_SECRET_KEY;
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key';
-const DB_PATH = process.env.DB_PATH || './licenses.db';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const DB_PATH = process.env.DB_PATH || './license.db';
 
-const stripe = new Stripe(STRIPE_KEY);
+// Initialize database
 const db = new sqlite3(DB_PATH);
-
-// ============================================================================
-// Database Setup
-// ============================================================================
+db.pragma('journal_mode = WAL');
 
 function initializeDatabase() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       email TEXT UNIQUE NOT NULL,
-      name TEXT,
-      tier TEXT DEFAULT 'free',
-      status TEXT DEFAULT 'active',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      stripe_customer_id TEXT UNIQUE
+      passwordHash TEXT NOT NULL,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS subscriptions (
       id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      stripe_subscription_id TEXT UNIQUE,
+      userId TEXT NOT NULL UNIQUE,
       tier TEXT NOT NULL,
-      monthly_credits INTEGER,
-      billing_cycle_start DATETIME,
-      billing_cycle_end DATETIME,
+      stripeCustomerId TEXT UNIQUE,
+      stripeSubscriptionId TEXT,
       status TEXT DEFAULT 'active',
-      auto_renew BOOLEAN DEFAULT 1,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY(user_id) REFERENCES users(id)
+      currentPeriodStart DATETIME,
+      currentPeriodEnd DATETIME,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users(id)
     );
 
     CREATE TABLE IF NOT EXISTS credits (
       id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      amount INTEGER NOT NULL,
-      balance INTEGER NOT NULL,
-      source TEXT, -- 'subscription', 'purchase', 'promotion'
-      expires_at DATETIME,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY(user_id) REFERENCES users(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS usage (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      credits_used INTEGER,
-      completions_count INTEGER,
-      qa_checks_count INTEGER,
-      date DATE DEFAULT CURRENT_DATE,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY(user_id) REFERENCES users(id)
+      userId TEXT NOT NULL UNIQUE,
+      balance REAL DEFAULT 0,
+      totalPurchased REAL DEFAULT 0,
+      totalUsed REAL DEFAULT 0,
+      lastRefillDate DATETIME,
+      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users(id)
     );
 
     CREATE TABLE IF NOT EXISTS licenses (
       id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
-      license_key TEXT UNIQUE NOT NULL,
-      product TEXT, -- 'vscode-ollama', 'wpbasic'
-      type TEXT, -- 'freemium', 'subscription', 'enterprise'
-      tier TEXT,
-      max_activations INTEGER DEFAULT 1,
+      userId TEXT NOT NULL,
+      licenseKey TEXT UNIQUE NOT NULL,
+      productName TEXT NOT NULL,
+      expiresAt DATETIME,
       activations INTEGER DEFAULT 0,
-      expires_at DATETIME,
+      maxActivations INTEGER DEFAULT 1,
       status TEXT DEFAULT 'active',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY(user_id) REFERENCES users(id)
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users(id)
     );
 
-    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-    CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions(user_id);
-    CREATE INDEX IF NOT EXISTS idx_credits_user ON credits(user_id);
-    CREATE INDEX IF NOT EXISTS idx_usage_user_date ON usage(user_id, date);
-    CREATE INDEX IF NOT EXISTS idx_licenses_key ON licenses(license_key);
+    CREATE TABLE IF NOT EXISTS usage (
+      id TEXT PRIMARY KEY,
+      userId TEXT NOT NULL,
+      licenseId TEXT,
+      completions INTEGER DEFAULT 0,
+      creditsCost REAL DEFAULT 0,
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users(id),
+      FOREIGN KEY (licenseId) REFERENCES licenses(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS payments (
+      id TEXT PRIMARY KEY,
+      userId TEXT NOT NULL,
+      stripePaymentIntentId TEXT UNIQUE,
+      amount REAL NOT NULL,
+      currency TEXT DEFAULT 'usd',
+      creditsGranted REAL,
+      status TEXT DEFAULT 'pending',
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_subscriptions_userId ON subscriptions(userId);
+    CREATE INDEX IF NOT EXISTS idx_licenses_userId ON licenses(userId);
+    CREATE INDEX IF NOT EXISTS idx_usage_userId ON usage(userId);
+    CREATE INDEX IF NOT EXISTS idx_payments_userId ON payments(userId);
   `);
-  console.log('Database initialized');
 }
 
-// ============================================================================
-// Authentication
-// ============================================================================
+initializeDatabase();
 
-function generateToken(userId) {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '30d' });
-}
-
-function verifyToken(token) {
-  try {
-    return jwt.verify(token, JWT_SECRET);
-  } catch (err) {
-    return null;
+// Pricing tiers
+const PRICING_TIERS = {
+  free: {
+    name: 'Free',
+    price: 0,
+    completionsPerDay: 50,
+    creditLimit: 0,
+    features: ['Basic completions', 'Community support']
+  },
+  starter: {
+    name: 'Starter',
+    price: 5,
+    completionsPerMonth: 500,
+    monthlyCredits: 50,
+    features: ['500 completions/month', 'Email support', 'All themes']
+  },
+  professional: {
+    name: 'Professional',
+    price: 15,
+    completionsPerMonth: 2000,
+    monthlyCredits: 200,
+    features: ['2000 completions/month', 'Priority support', 'Advanced QA', 'Voice commands']
+  },
+  business: {
+    name: 'Business',
+    price: 50,
+    completionsPerMonth: 10000,
+    monthlyCredits: 1000,
+    features: ['10000 completions/month', '24/7 support', 'Custom models', 'Team management']
+  },
+  enterprise: {
+    name: 'Enterprise',
+    price: 'custom',
+    completionsPerMonth: 'unlimited',
+    monthlyCredits: 'unlimited',
+    features: ['Unlimited usage', 'Dedicated support', 'Custom SLA', 'On-premise option']
   }
-}
-
-const authMiddleware = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
-  }
-
-  const decoded = verifyToken(token);
-  if (!decoded) {
-    return res.status(401).json({ error: 'Invalid token' });
-  }
-
-  req.userId = decoded.userId;
-  next();
 };
 
-// ============================================================================
-// Authentication Routes
-// ============================================================================
+// Middleware
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
 
-// Sign up / Create account
-app.post('/auth/signup', async (req, res) => {
-  const { email, name, product } = req.body;
+function verifyToken(req, res, next) {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ error: 'No token provided' });
 
   try {
-    // Check if user exists
-    const existing = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-    if (existing) {
-      return res.status(409).json({ error: 'User already exists' });
+    req.user = jwt.verify(token, JWT_SECRET);
+    next();
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+}
+
+// Auth endpoints
+app.post('/api/auth/signup', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+
+    const userId = generateId();
+    const passwordHash = bcrypt.hashSync(password, 10);
+
+    const stmt = db.prepare(`INSERT INTO users (id, email, passwordHash) VALUES (?, ?, ?)`);
+    stmt.run(userId, email, passwordHash);
+
+    // Initialize free tier
+    const creditStmt = db.prepare(`INSERT INTO credits (id, userId, balance) VALUES (?, ?, ?)`);
+    creditStmt.run(generateId(), userId, 0);
+
+    const token = jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: '30d' });
+    res.json({ userId, email, token, tier: 'free' });
+  } catch (err) {
+    if (err.message.includes('UNIQUE')) {
+      res.status(400).json({ error: 'Email already exists' });
+    } else {
+      res.status(500).json({ error: err.message });
     }
-
-    // Create Stripe customer
-    const customer = await stripe.customers.create({
-      email,
-      name,
-      metadata: { product }
-    });
-
-    // Create user
-    const userId = crypto.randomUUID();
-    db.prepare(`
-      INSERT INTO users (id, email, name, stripe_customer_id, tier)
-      VALUES (?, ?, ?, ?, 'free')
-    `).run(userId, email, name, customer.id);
-
-    // Generate license key for free tier
-    const licenseKey = generateLicenseKey();
-    db.prepare(`
-      INSERT INTO licenses (id, user_id, license_key, product, type, tier)
-      VALUES (?, ?, ?, ?, 'freemium', 'free')
-    `).run(crypto.randomUUID(), userId, licenseKey, product);
-
-    const token = generateToken(userId);
-
-    res.json({
-      userId,
-      email,
-      tier: 'free',
-      token,
-      licenseKey,
-      message: 'Welcome to VS Code Ollama!'
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Signup failed' });
   }
 });
 
-// Login
-app.post('/auth/login', (req, res) => {
-  const { email, password } = req.body;
-
+app.post('/api/auth/login', (req, res) => {
   try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+
     const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // In production, verify password hash
-    const token = generateToken(user.id);
+    const subscription = db.prepare('SELECT tier FROM subscriptions WHERE userId = ?').get(user.id);
+    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '30d' });
 
     res.json({
       userId: user.id,
       email: user.email,
-      tier: user.tier,
-      token
+      token,
+      tier: subscription?.tier || 'free'
     });
-  } catch (error) {
-    res.status(500).json({ error: 'Login failed' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-// ============================================================================
-// License Routes
-// ============================================================================
-
-// Verify license key
-app.post('/license/verify', (req, res) => {
-  const { licenseKey, product } = req.body;
-
+// License verification
+app.post('/api/licenses/verify', verifyToken, (req, res) => {
   try {
-    const license = db.prepare(`
-      SELECT l.*, u.tier, u.status FROM licenses l
-      JOIN users u ON l.user_id = u.id
-      WHERE l.license_key = ? AND l.product = ?
-    `).get(licenseKey, product);
+    const { licenseKey } = req.body;
+    if (!licenseKey) return res.status(400).json({ error: 'License key required' });
+
+    const license = db.prepare('SELECT * FROM licenses WHERE licenseKey = ? AND userId = ?').get(
+      licenseKey,
+      req.user.userId
+    );
 
     if (!license) {
-      return res.status(404).json({ error: 'Invalid license key' });
+      return res.status(404).json({ error: 'License not found' });
     }
 
     if (license.status !== 'active') {
-      return res.status(403).json({ error: 'License not active' });
+      return res.status(403).json({ error: 'License is not active' });
     }
 
-    if (license.expires_at && new Date(license.expires_at) < new Date()) {
+    if (license.expiresAt && new Date(license.expiresAt) < new Date()) {
       return res.status(403).json({ error: 'License expired' });
     }
 
-    if (license.activations >= license.max_activations) {
-      return res.status(403).json({ error: 'Max activations reached' });
-    }
-
-    // Increment activations
-    db.prepare('UPDATE licenses SET activations = activations + 1 WHERE id = ?')
-      .run(license.id);
-
     res.json({
       valid: true,
-      tier: license.tier,
-      product: license.product,
-      expiresAt: license.expires_at
+      licenseKey: license.licenseKey,
+      productName: license.productName,
+      expiresAt: license.expiresAt,
+      status: license.status
     });
-  } catch (error) {
-    res.status(500).json({ error: 'Verification failed' });
-  }
-});
-
-// ============================================================================
-// Subscription Routes
-// ============================================================================
-
-// Get subscription options
-app.get('/subscriptions/plans', (req, res) => {
-  const plans = {
-    starter: {
-      priceId: 'price_starter',
-      name: 'Starter',
-      price: 5,
-      monthlyCredits: 500,
-      features: ['500 completions/month', 'Unlimited workspaces', '4 themes']
-    },
-    professional: {
-      priceId: 'price_pro',
-      name: 'Professional',
-      price: 15,
-      monthlyCredits: 2000,
-      features: ['2,000 completions/month', 'Team collaboration (3)', 'API access']
-    },
-    business: {
-      priceId: 'price_business',
-      name: 'Business',
-      price: 50,
-      monthlyCredits: 10000,
-      features: ['10,000 completions/month', 'Unlimited team', 'Custom models']
-    }
-  };
-
-  res.json(plans);
-});
-
-// Create subscription checkout session
-app.post('/subscriptions/checkout', authMiddleware, async (req, res) => {
-  const { tier } = req.body;
-
-  try {
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.userId);
-
-    const priceMap = {
-      starter: 'price_starter',
-      professional: 'price_pro',
-      business: 'price_business'
-    };
-
-    const session = await stripe.checkout.sessions.create({
-      customer: user.stripe_customer_id,
-      payment_method_types: ['card'],
-      line_items: [{
-        price: priceMap[tier],
-        quantity: 1
-      }],
-      mode: 'subscription',
-      success_url: `${process.env.FRONTEND_URL}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.FRONTEND_URL}/subscription/cancel`,
-      metadata: {
-        userId: req.userId,
-        tier
-      }
-    });
-
-    res.json({
-      sessionId: session.id,
-      url: session.url
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Checkout failed' });
-  }
-});
-
-// Handle Stripe webhook
-app.post('/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
   } catch (err) {
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    res.status(500).json({ error: err.message });
   }
-
-  if (event.type === 'customer.subscription.created' || event.type === 'customer.subscription.updated') {
-    const subscription = event.data.object;
-    const userId = subscription.metadata.userId;
-    const tier = subscription.metadata.tier;
-
-    // Store subscription
-    db.prepare(`
-      INSERT OR REPLACE INTO subscriptions
-      (id, user_id, stripe_subscription_id, tier, monthly_credits, status)
-      VALUES (?, ?, ?, ?, ?, 'active')
-    `).run(
-      crypto.randomUUID(),
-      userId,
-      subscription.id,
-      tier,
-      getTierCredits(tier)
-    );
-
-    // Update user tier
-    db.prepare('UPDATE users SET tier = ? WHERE id = ?').run(tier, userId);
-
-    // Add credits for new billing cycle
-    addMonthlyCredits(userId, getTierCredits(tier));
-  }
-
-  res.json({ received: true });
 });
 
-// ============================================================================
-// Credits Routes
-// ============================================================================
-
-// Get user credits
-app.get('/credits/balance', authMiddleware, (req, res) => {
-  const credits = db.prepare(`
-    SELECT SUM(balance) as total FROM credits
-    WHERE user_id = ? AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
-  `).get(req.userId);
-
-  const usage = db.prepare(`
-    SELECT SUM(credits_used) as total FROM usage
-    WHERE user_id = ? AND date >= date('now', '-30 days')
-  `).get(req.userId);
-
-  res.json({
-    balance: credits.total || 0,
-    usedThisMonth: usage.total || 0
-  });
+// Pricing plans
+app.get('/api/plans', (req, res) => {
+  res.json(PRICING_TIERS);
 });
 
-// Use credits (deduct for completion)
-app.post('/credits/use', authMiddleware, (req, res) => {
-  const { amount, type } = req.body; // type: 'completion', 'qa'
-
+// Subscription management
+app.post('/api/subscriptions/checkout', verifyToken, async (req, res) => {
   try {
-    const balance = db.prepare(`
-      SELECT SUM(balance) as total FROM credits
-      WHERE user_id = ? AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
-    `).get(req.userId);
+    const { tier } = req.body;
+    if (!PRICING_TIERS[tier]) return res.status(400).json({ error: 'Invalid tier' });
 
-    if (!balance.total || balance.total < amount) {
-      return res.status(402).json({ error: 'Insufficient credits' });
+    const user = db.prepare('SELECT email FROM users WHERE id = ?').get(req.user.userId);
+    const pricing = PRICING_TIERS[tier];
+
+    if (tier === 'free' || tier === 'enterprise') {
+      return res.status(400).json({ error: 'Cannot checkout free or enterprise tier' });
     }
 
-    // Deduct credits (use oldest first)
-    const credits = db.prepare(`
-      SELECT * FROM credits
-      WHERE user_id = ? AND balance > 0
-      ORDER BY expires_at ASC, created_at ASC
-    `).all(req.userId);
+    // Create or get Stripe customer
+    let subscription = db.prepare('SELECT * FROM subscriptions WHERE userId = ?').get(req.user.userId);
+    let customerId = subscription?.stripeCustomerId;
 
-    let remaining = amount;
-    for (const credit of credits) {
-      const deduct = Math.min(credit.balance, remaining);
-      db.prepare('UPDATE credits SET balance = balance - ? WHERE id = ?')
-        .run(deduct, credit.id);
-      remaining -= deduct;
-      if (remaining === 0) break;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: { userId: req.user.userId }
+      });
+      customerId = customer.id;
     }
 
-    // Log usage
-    db.prepare(`
-      INSERT OR REPLACE INTO usage (id, user_id, credits_used, ${type}_count)
-      VALUES (?, ?, ?, ?)
-      ON CONFLICT(user_id) DO UPDATE SET credits_used = credits_used + ?, ${type}_count = ${type}_count + 1
-    `).run(
-      `${req.userId}-${new Date().toISOString().split('T')[0]}`,
-      req.userId,
-      amount,
-      1,
-      amount
-    );
-
-    res.json({ success: true, creditsUsed: amount });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to use credits' });
-  }
-});
-
-// Purchase additional credits
-app.post('/credits/purchase', authMiddleware, async (req, res) => {
-  const { creditAmount } = req.body;
-
-  try {
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.userId);
-    const price = creditAmount * 0.01; // $0.01 per credit
-
+    // Create checkout session
     const session = await stripe.checkout.sessions.create({
-      customer: user.stripe_customer_id,
+      customer: customerId,
+      mode: 'subscription',
       payment_method_types: ['card'],
-      line_items: [{
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `${creditAmount} Credits`
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: `Ollama VS Code - ${pricing.name}`,
+              description: `${pricing.completionsPerMonth} completions/month`
+            },
+            unit_amount: Math.round(pricing.price * 100),
+            recurring: {
+              interval: 'month',
+              interval_count: 1
+            }
           },
-          unit_amount: Math.round(price * 100)
-        },
-        quantity: 1
-      }],
-      mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL}/credits/success`,
-      cancel_url: `${process.env.FRONTEND_URL}/credits/cancel`,
-      metadata: {
-        userId: req.userId,
-        creditAmount
-      }
+          quantity: 1
+        }
+      ],
+      success_url: `${process.env.DOMAIN || 'http://localhost:3000'}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.DOMAIN || 'http://localhost:3000'}/cancelled`,
+      metadata: { userId: req.user.userId, tier }
     });
 
     res.json({ sessionId: session.id, url: session.url });
-  } catch (error) {
-    res.status(500).json({ error: 'Purchase failed' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
-// ============================================================================
-// Helper Functions
-// ============================================================================
+// Credits API
+app.get('/api/credits/balance', verifyToken, (req, res) => {
+  try {
+    const credits = db.prepare('SELECT * FROM credits WHERE userId = ?').get(req.user.userId);
+    if (!credits) return res.status(404).json({ error: 'Credits not found' });
 
-function getTierCredits(tier) {
-  const tierCredits = {
-    free: 50,
-    starter: 500,
-    professional: 2000,
-    business: 10000
-  };
-  return tierCredits[tier] || 0;
-}
+    res.json({
+      balance: credits.balance,
+      totalPurchased: credits.totalPurchased,
+      totalUsed: credits.totalUsed
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-function generateLicenseKey() {
-  return 'LL-' + crypto.randomBytes(16).toString('hex').toUpperCase().slice(0, 24);
-}
+app.post('/api/credits/purchase', verifyToken, async (req, res) => {
+  try {
+    const { amount } = req.body;
+    if (!amount || amount < 10) return res.status(400).json({ error: 'Minimum $10 purchase' });
 
-function addMonthlyCredits(userId, amount) {
-  const expiresAt = new Date();
-  expiresAt.setMonth(expiresAt.getMonth() + 3); // Expire in 3 months
+    const user = db.prepare('SELECT email FROM users WHERE id = ?').get(req.user.userId);
 
-  db.prepare(`
-    INSERT INTO credits (id, user_id, amount, balance, source, expires_at)
-    VALUES (?, ?, ?, ?, 'subscription', ?)
-  `).run(
-    crypto.randomUUID(),
-    userId,
-    amount,
-    amount,
-    expiresAt.toISOString()
-  );
-}
+    // Create payment intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(amount * 100),
+      currency: 'usd',
+      customer: (await stripe.customers.create({ email: user.email })).id,
+      metadata: { userId: req.user.userId }
+    });
 
-// ============================================================================
-// Health Check
-// ============================================================================
+    // Calculate credits (e.g., $10 = 1000 credits at $0.01 per completion)
+    const creditsGranted = amount * 100;
 
-app.get('/health', (req, res) => {
+    // Store payment record
+    const paymentId = generateId();
+    db.prepare(`
+      INSERT INTO payments (id, userId, stripePaymentIntentId, amount, creditsGranted, status)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(paymentId, req.user.userId, paymentIntent.id, amount, creditsGranted, 'pending');
+
+    res.json({
+      paymentIntentId: paymentIntent.id,
+      clientSecret: paymentIntent.client_secret,
+      creditsWillReceive: creditsGranted
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Usage tracking
+app.post('/api/usage/deduct', verifyToken, (req, res) => {
+  try {
+    const { licenseId, completions = 1 } = req.body;
+    const costPerCompletion = 0.01;
+    const totalCost = completions * costPerCompletion;
+
+    // Check credits
+    const credits = db.prepare('SELECT balance FROM credits WHERE userId = ?').get(req.user.userId);
+    if (credits.balance < totalCost) {
+      return res.status(402).json({ error: 'Insufficient credits', required: totalCost, available: credits.balance });
+    }
+
+    // Deduct credits
+    db.prepare('UPDATE credits SET balance = balance - ?, totalUsed = totalUsed + ? WHERE userId = ?')
+      .run(totalCost, totalCost, req.user.userId);
+
+    // Log usage
+    const usageId = generateId();
+    db.prepare(`
+      INSERT INTO usage (id, userId, licenseId, completions, creditsCost)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(usageId, req.user.userId, licenseId, completions, totalCost);
+
+    res.json({
+      success: true,
+      creditsDeducted: totalCost,
+      creditsRemaining: credits.balance - totalCost
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Stripe webhook
+app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  try {
+    const event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      const { userId, tier } = session.metadata;
+
+      // Update subscription
+      const now = new Date();
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
+
+      const subStmt = db.prepare(`
+        INSERT OR REPLACE INTO subscriptions (id, userId, tier, stripeCustomerId, stripeSubscriptionId, status, currentPeriodStart, currentPeriodEnd)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      subStmt.run(
+        generateId(),
+        userId,
+        tier,
+        session.customer,
+        session.subscription,
+        'active',
+        now.toISOString(),
+        nextMonth.toISOString()
+      );
+
+      // Grant monthly credits
+      const planCredits = PRICING_TIERS[tier].monthlyCredits || 0;
+      db.prepare('UPDATE credits SET balance = balance + ? WHERE userId = ?')
+        .run(planCredits, userId);
+    }
+
+    if (event.type === 'payment_intent.succeeded') {
+      const paymentIntent = event.data.object;
+      const { userId } = paymentIntent.metadata;
+
+      // Get payment record
+      const payment = db.prepare('SELECT creditsGranted FROM payments WHERE stripePaymentIntentId = ?').get(paymentIntent.id);
+
+      if (payment) {
+        // Grant credits
+        db.prepare('UPDATE credits SET balance = balance + ?, totalPurchased = totalPurchased + ? WHERE userId = ?')
+          .run(payment.creditsGranted, payment.creditsGranted, userId);
+
+        // Mark payment as succeeded
+        db.prepare('UPDATE payments SET status = ? WHERE stripePaymentIntentId = ?')
+          .run('succeeded', paymentIntent.id);
+      }
+    }
+
+    res.json({ received: true });
+  } catch (err) {
+    console.error('Webhook error:', err);
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Status endpoint
+app.get('/api/status', (req, res) => {
   res.json({
     status: 'ok',
-    timestamp: new Date().toISOString(),
-    service: 'VS Code Ollama License Server'
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
   });
 });
 
-// ============================================================================
-// Startup
-// ============================================================================
+// Error handling
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
-initializeDatabase();
-
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`License server running on port ${PORT}`);
-  console.log('Endpoints:');
-  console.log('  POST /auth/signup');
-  console.log('  POST /auth/login');
-  console.log('  POST /license/verify');
-  console.log('  GET  /subscriptions/plans');
-  console.log('  POST /subscriptions/checkout');
-  console.log('  GET  /credits/balance');
-  console.log('  POST /credits/use');
-  console.log('  POST /credits/purchase');
+  console.log(`Database: ${DB_PATH}`);
 });
 
 module.exports = app;
