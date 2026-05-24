@@ -1,0 +1,13 @@
+name = "ollama-landing"
+type = "javascript"
+account_id = ""
+workers_dev = true
+route = ""
+zone_id = ""
+
+[build]
+cwd = "."
+command = "echo 'No build step needed'"
+
+[build.upload]
+format = "service-worker"
