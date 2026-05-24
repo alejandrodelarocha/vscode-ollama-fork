@@ -1,0 +1,122 @@
+{
+  "name": "Dracula",
+  "type": "dark",
+  "colors": {
+    "editor.background": "#282a36",
+    "editor.foreground": "#f8f8f2",
+    "editor.lineNumberColor": "#6272a4",
+    "editor.lineHighlightBackground": "#44475a",
+    "editor.selectionBackground": "#44475a",
+    "editorCursor.foreground": "#f8f8f2",
+    "editorWhitespace.foreground": "#6272a4",
+    "editorBracketMatch.background": "#44475a",
+    "editorBracketMatch.border": "#ff79c6",
+    "statusBar.background": "#44475a",
+    "statusBar.foreground": "#f8f8f2",
+    "sideBar.background": "#282a36",
+    "sideBar.foreground": "#f8f8f2",
+    "sideBarTitle.foreground": "#f8f8f2",
+    "activityBar.background": "#282a36",
+    "activityBar.foreground": "#8be9fd",
+    "terminal.background": "#282a36",
+    "terminal.foreground": "#f8f8f2",
+    "terminal.ansiRed": "#ff5555",
+    "terminal.ansiGreen": "#50fa7b",
+    "terminal.ansiYellow": "#f1fa8c",
+    "terminal.ansiBlue": "#8be9fd",
+    "terminal.ansiMagenta": "#ff79c6",
+    "terminal.ansiCyan": "#8be9fd"
+  },
+  "tokenColors": [
+    {
+      "name": "Comment",
+      "scope": ["comment"],
+      "settings": {"foreground": "#6272a4"}
+    },
+    {
+      "name": "String",
+      "scope": ["string"],
+      "settings": {"foreground": "#f1fa8c"}
+    },
+    {
+      "name": "Number",
+      "scope": ["constant.numeric"],
+      "settings": {"foreground": "#bd93f9"}
+    },
+    {
+      "name": "Built-in constant",
+      "scope": ["constant.language"],
+      "settings": {"foreground": "#bd93f9"}
+    },
+    {
+      "name": "User-defined constant",
+      "scope": ["constant.character", "constant.other"],
+      "settings": {"foreground": "#bd93f9"}
+    },
+    {
+      "name": "Variable",
+      "scope": ["variable"],
+      "settings": {"foreground": "#f8f8f2"}
+    },
+    {
+      "name": "Keyword",
+      "scope": ["keyword"],
+      "settings": {"foreground": "#ff79c6"}
+    },
+    {
+      "name": "Storage",
+      "scope": ["storage"],
+      "settings": {"foreground": "#ff79c6"}
+    },
+    {
+      "name": "Storage type",
+      "scope": ["storage.type"],
+      "settings": {"foreground": "#8be9fd"}
+    },
+    {
+      "name": "Class name",
+      "scope": ["entity.name.class"],
+      "settings": {"foreground": "#50fa7b"}
+    },
+    {
+      "name": "Function name",
+      "scope": ["entity.name.function"],
+      "settings": {"foreground": "#50fa7b"}
+    },
+    {
+      "name": "Function argument",
+      "scope": ["variable.parameter"],
+      "settings": {"foreground": "#f1fa8c"}
+    },
+    {
+      "name": "Tag name",
+      "scope": ["entity.name.tag"],
+      "settings": {"foreground": "#ff79c6"}
+    },
+    {
+      "name": "Tag attribute",
+      "scope": ["entity.other.attribute-name"],
+      "settings": {"foreground": "#50fa7b"}
+    },
+    {
+      "name": "Library function",
+      "scope": ["support.function"],
+      "settings": {"foreground": "#8be9fd"}
+    },
+    {
+      "name": "Library constant",
+      "scope": ["support.constant"],
+      "settings": {"foreground": "#8be9fd"}
+    },
+    {
+      "name": "Library class/type",
+      "scope": ["support.type", "support.class"],
+      "settings": {"foreground": "#8be9fd"}
+    },
+    {
+      "name": "Invalid",
+      "scope": ["invalid"],
+      "settings": {"foreground": "#f8f8f2", "background": "#ff79c6"}
+    }
+  ]
+}

@@ -53,6 +53,31 @@
         "label": "Ollama High Contrast Dark",
         "uiTheme": "hc-black",
         "path": "./themes/ollama-hc-dark.json"
+      },
+      {
+        "label": "Dracula",
+        "uiTheme": "vs-dark",
+        "path": "./themes/dracula.json"
+      },
+      {
+        "label": "Nord",
+        "uiTheme": "vs-dark",
+        "path": "./themes/nord.json"
+      },
+      {
+        "label": "Tokyo Night",
+        "uiTheme": "vs-dark",
+        "path": "./themes/tokyo-night.json"
+      },
+      {
+        "label": "One Dark Pro",
+        "uiTheme": "vs-dark",
+        "path": "./themes/one-dark.json"
+      },
+      {
+        "label": "GitHub Light",
+        "uiTheme": "vs",
+        "path": "./themes/github-light.json"
       }
     ],
     "commands": [

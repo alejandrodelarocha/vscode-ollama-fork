@@ -1,0 +1,66 @@
+{
+  "name": "GitHub Light",
+  "type": "light",
+  "colors": {
+    "editor.background": "#ffffff",
+    "editor.foreground": "#24292e",
+    "editor.lineNumberColor": "#d1d5da",
+    "editor.lineHighlightBackground": "#f6f8fa",
+    "editor.selectionBackground": "#f3e5cc",
+    "editorCursor.foreground": "#24292e",
+    "editorWhitespace.foreground": "#e1e4e8",
+    "editorBracketMatch.background": "#fffacd",
+    "editorBracketMatch.border": "#005cc5",
+    "statusBar.background": "#f6f8fa",
+    "statusBar.foreground": "#24292e",
+    "sideBar.background": "#f6f8fa",
+    "sideBar.foreground": "#24292e",
+    "activityBar.background": "#f6f8fa",
+    "activityBar.foreground": "#005cc5",
+    "terminal.background": "#ffffff",
+    "terminal.foreground": "#24292e",
+    "terminal.ansiRed": "#cb2431",
+    "terminal.ansiGreen": "#28a745",
+    "terminal.ansiYellow": "#6f42c1",
+    "terminal.ansiBlue": "#005cc5",
+    "terminal.ansiMagenta": "#6f42c1",
+    "terminal.ansiCyan": "#0366d6"
+  },
+  "tokenColors": [
+    {
+      "name": "Comment",
+      "scope": ["comment"],
+      "settings": {"foreground": "#6a737d"}
+    },
+    {
+      "name": "String",
+      "scope": ["string"],
+      "settings": {"foreground": "#032f62"}
+    },
+    {
+      "name": "Number",
+      "scope": ["constant.numeric"],
+      "settings": {"foreground": "#005cc5"}
+    },
+    {
+      "name": "Keyword",
+      "scope": ["keyword"],
+      "settings": {"foreground": "#d73a49"}
+    },
+    {
+      "name": "Class name",
+      "scope": ["entity.name.class"],
+      "settings": {"foreground": "#6f42c1"}
+    },
+    {
+      "name": "Function name",
+      "scope": ["entity.name.function"],
+      "settings": {"foreground": "#005cc5"}
+    },
+    {
+      "name": "Function argument",
+      "scope": ["variable.parameter"],
+      "settings": {"foreground": "#24292e"}
+    }
+  ]
+}

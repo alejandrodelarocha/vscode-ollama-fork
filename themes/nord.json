@@ -1,0 +1,71 @@
+{
+  "name": "Nord",
+  "type": "dark",
+  "colors": {
+    "editor.background": "#2e3440",
+    "editor.foreground": "#d8dee9",
+    "editor.lineNumberColor": "#4c566a",
+    "editor.lineHighlightBackground": "#3b4252",
+    "editor.selectionBackground": "#434c5e",
+    "editorCursor.foreground": "#eceff4",
+    "editorWhitespace.foreground": "#4c566a",
+    "editorBracketMatch.background": "#3b4252",
+    "editorBracketMatch.border": "#88c0d0",
+    "statusBar.background": "#3b4252",
+    "statusBar.foreground": "#d8dee9",
+    "sideBar.background": "#2e3440",
+    "sideBar.foreground": "#d8dee9",
+    "activityBar.background": "#2e3440",
+    "activityBar.foreground": "#88c0d0",
+    "terminal.background": "#2e3440",
+    "terminal.foreground": "#d8dee9",
+    "terminal.ansiRed": "#bf616a",
+    "terminal.ansiGreen": "#a3be8c",
+    "terminal.ansiYellow": "#ebcb8b",
+    "terminal.ansiBlue": "#81a1c1",
+    "terminal.ansiMagenta": "#b48ead",
+    "terminal.ansiCyan": "#88c0d0"
+  },
+  "tokenColors": [
+    {
+      "name": "Comment",
+      "scope": ["comment"],
+      "settings": {"foreground": "#616e88"}
+    },
+    {
+      "name": "String",
+      "scope": ["string"],
+      "settings": {"foreground": "#a3be8c"}
+    },
+    {
+      "name": "Number",
+      "scope": ["constant.numeric"],
+      "settings": {"foreground": "#b48ead"}
+    },
+    {
+      "name": "Keyword",
+      "scope": ["keyword"],
+      "settings": {"foreground": "#81a1c1"}
+    },
+    {
+      "name": "Class name",
+      "scope": ["entity.name.class"],
+      "settings": {"foreground": "#8fbcbb"}
+    },
+    {
+      "name": "Function name",
+      "scope": ["entity.name.function"],
+      "settings": {"foreground": "#88c0d0"}
+    },
+    {
+      "name": "Function argument",
+      "scope": ["variable.parameter"],
+      "settings": {"foreground": "#ebcb8b"}
+    },
+    {
+      "name": "Library function",
+      "scope": ["support.function"],
+      "settings": {"foreground": "#81a1c1"}
+    }
+  ]
+}
