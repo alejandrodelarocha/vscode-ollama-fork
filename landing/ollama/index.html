@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ollama VS Code - AI-Powered Code Completion</title>
+  <meta name="description" content="VS Code fork with GPU-accelerated Ollama code completion using qwen3:14b. Voice commands, 9 themes, auto QA, and daily tips.">
+  <meta name="keywords" content="ollama, vscode, ai, code completion, gpu, qwen3, local ai, private">
+  <meta property="og:title" content="Ollama VS Code - AI-Powered Code Completion">
+  <meta property="og:description" content="VS Code with integrated Ollama qwen3:14b for private, GPU-accelerated completions.">
+  <meta property="og:image" content="https://rochastudios.ai/ollama/og-image.png">
+  <meta property="og:url" content="https://rochastudios.ai/ollama">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #24292e;
+      background: #ffffff;
+    }
+
+    header {
+      background: linear-gradient(135deg, #282c34 0%, #1e2228 100%);
+      color: white;
+      padding: 20px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #61afef;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #61afef 0%, #56b6c2 100%);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    nav {
+      display: flex;
+      gap: 30px;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: #61afef;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #ffffff 0%, #f6f8fa 100%);
+      padding: 80px 20px;
+      text-align: center;
+    }
+
+    .hero-content {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+      color: #282c34;
+      font-weight: 700;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #61afef 0%, #56b6c2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 20px;
+      color: #666;
+      margin-bottom: 40px;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 60px;
+      flex-wrap: wrap;
+    }
+
+    button, .btn {
+      padding: 14px 32px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #61afef 0%, #56b6c2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(97, 175, 239, 0.3);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #282c34;
+      border: 2px solid #282c34;
+    }
+
+    .btn-secondary:hover {
+      background: #282c34;
+      color: white;
+    }
+
+    .features {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 20px;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 36px;
+      margin-bottom: 50px;
+      color: #282c34;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+      margin-bottom: 60px;
+    }
+
+    .feature-card {
+      background: white;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      padding: 30px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      border-color: #61afef;
+      box-shadow: 0 8px 24px rgba(97, 175, 239, 0.1);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #61afef 0%, #56b6c2 100%);
+      border-radius: 8px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .feature-card h3 {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #282c34;
+    }
+
+    .feature-card p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .themes-showcase {
+      background: #f6f8fa;
+      padding: 80px 20px;
+    }
+
+    .themes-content {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .themes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .theme-card {
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #e1e4e8;
+      transition: all 0.3s;
+    }
+
+    .theme-card:hover {
+      border-color: #61afef;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .theme-preview {
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+      color: white;
+      font-size: 14px;
+    }
+
+    .theme-name {
+      padding: 12px;
+      background: white;
+      text-align: center;
+      font-size: 13px;
+      color: #282c34;
+    }
+
+    .pricing {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 20px;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin-bottom: 60px;
+    }
+
+    .pricing-card {
+      border: 2px solid #e1e4e8;
+      border-radius: 8px;
+      padding: 40px 30px;
+      text-align: center;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .pricing-card.featured {
+      border-color: #61afef;
+      background: rgba(97, 175, 239, 0.05);
+      transform: scale(1.05);
+    }
+
+    .pricing-card h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #282c34;
+    }
+
+    .price {
+      font-size: 36px;
+      font-weight: bold;
+      color: #61afef;
+      margin: 20px 0;
+    }
+
+    .price-note {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .pricing-features {
+      text-align: left;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .pricing-features li {
+      list-style: none;
+      padding: 8px 0;
+      color: #666;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .pricing-features li:before {
+      content: "✓ ";
+      color: #98c379;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .extension {
+      background: linear-gradient(135deg, #282c34 0%, #1e2228 100%);
+      color: white;
+      padding: 80px 20px;
+      text-align: center;
+    }
+
+    .extension-content {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .extension-content h2 {
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+
+    .extension-content p {
+      font-size: 16px;
+      color: #abb2bf;
+      margin-bottom: 40px;
+    }
+
+    .voice-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      margin-top: 50px;
+      text-align: center;
+    }
+
+    .voice-feature {
+      padding: 20px;
+      background: rgba(97, 175, 239, 0.1);
+      border-radius: 8px;
+    }
+
+    .voice-feature-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .voice-feature h4 {
+      margin-bottom: 8px;
+      color: #61afef;
+    }
+
+    .voice-feature p {
+      font-size: 13px;
+      color: #999;
+    }
+
+    footer {
+      background: #f6f8fa;
+      padding: 40px 20px;
+      text-align: center;
+      border-top: 1px solid #e1e4e8;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: #666;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .footer-links a:hover {
+      color: #61afef;
+    }
+
+    .footer-note {
+      color: #999;
+      font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 32px;
+      }
+
+      .subtitle {
+        font-size: 16px;
+      }
+
+      nav {
+        display: none;
+      }
+
+      .cta-buttons {
+        flex-direction: column;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .pricing-card.featured {
+        transform: scale(1);
+      }
+
+      .voice-features {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-icon">OA</div>
+        Ollama VS Code
+      </div>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#themes">Themes</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#extension">Extension</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1>AI-Powered Code Completion<br><span class="gradient-text">Powered by Ollama</span></h1>
+      <p class="subtitle">VS Code fork with GPU-accelerated qwen3:14b model. Private. Fast. Offline.</p>
+      <div class="cta-buttons">
+        <a href="#downloads" class="btn btn-primary">Download Now</a>
+        <a href="https://github.com/alejandrodelarocha/vscode-ollama-fork" class="btn btn-secondary">View on GitHub</a>
+      </div>
+      <p style="color: #999; font-size: 14px;">9 themes • Voice commands • Auto QA • Daily tips</p>
+    </div>
+  </section>
+
+  <section id="features" class="features">
+    <h2 class="section-title">Powerful Features</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>GPU-Accelerated</h3>
+        <p>Leverage dedicated GPU server for instant completions. No latency, pure speed.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>100% Private</h3>
+        <p>Run locally on your own hardware. Your code never leaves your machine.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎤</div>
+        <h3>Voice Commands</h3>
+        <p>Chrome extension adds speech-to-code. Speak your completions, not type them.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>9 Beautiful Themes</h3>
+        <p>Ollama, Dracula, Nord, Tokyo Night, One Dark Pro, GitHub Light, and more.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✅</div>
+        <h3>Auto QA</h3>
+        <p>Real-time code quality analysis. Detect security issues as you code.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💡</div>
+        <h3>Daily Suggestions</h3>
+        <p>5 contextual tips daily (Lovable-style). Sidebar panel with discovery.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="themes" class="themes-showcase">
+    <div class="themes-content">
+      <h2 class="section-title">9 Professional Themes</h2>
+      <div class="themes-grid">
+        <div class="theme-card">
+          <div class="theme-preview" style="background: #282c34;">Ollama Dark</div>
+          <div class="theme-name">Ollama Dark</div>
+        </div>
+        <div class="theme-card">
+          <div class="theme-preview" style="background: #ffffff; color: #24292e;">Ollama Light</div>
+          <div class="theme-name">Ollama Light</div>
+        </div>
+        <div class="theme-card">
+          <div class="theme-preview" style="background: #282a36;">Dracula</div>
+          <div class="theme-name">Dracula</div>
+        </div>
+        <div class="theme-card">
+          <div class="theme-preview" style="background: #2e3440;">Nord</div>
+          <div class="theme-name">Nord</div>
+        </div>
+        <div class="theme-card">
+          <div class="theme-preview" style="background: #1a1b26;">Tokyo Night</div>
+          <div class="theme-name">Tokyo Night</div>
+        </div>
+        <div class="theme-card">
+          <div class="theme-preview" style="background: #282c34;">One Dark Pro</div>
+          <div class="theme-name">One Dark Pro</div>
+        </div>
+        <div class="theme-card">
+          <div class="theme-preview" style="background: #ffffff; color: #24292e;">GitHub Light</div>
+          <div class="theme-name">GitHub Light</div>
+        </div>
+        <div class="theme-card">
+          <div class="theme-preview" style="background: #f6f8fa; color: #24292e;">HC Light</div>
+          <div class="theme-name">HC Light</div>
+        </div>
+        <div class="theme-card">
+          <div class="theme-preview" style="background: #1e1e1e;">HC Dark</div>
+          <div class="theme-name">HC Dark</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="pricing">
+    <h2 class="section-title">Simple Pricing</h2>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <h3>Free</h3>
+        <div class="price">$0</div>
+        <div class="price-note">Forever free</div>
+        <ul class="pricing-features">
+          <li>50 completions/day</li>
+          <li>Basic QA analysis</li>
+          <li>All 9 themes</li>
+          <li>Community support</li>
+        </ul>
+        <button class="btn btn-secondary">Get Started</button>
+      </div>
+      <div class="pricing-card featured">
+        <h3>Professional</h3>
+        <div class="price">$15</div>
+        <div class="price-note">/month</div>
+        <ul class="pricing-features">
+          <li>2,000 completions/month</li>
+          <li>Advanced QA</li>
+          <li>Priority support</li>
+          <li>Custom models</li>
+        </ul>
+        <button class="btn btn-primary">Subscribe Now</button>
+      </div>
+      <div class="pricing-card">
+        <h3>Enterprise</h3>
+        <div class="price">Custom</div>
+        <div class="price-note">Per month</div>
+        <ul class="pricing-features">
+          <li>Unlimited completions</li>
+          <li>White-label option</li>
+          <li>Dedicated support</li>
+          <li>Custom models</li>
+        </ul>
+        <button class="btn btn-secondary">Contact Sales</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="extension" class="extension">
+    <div class="extension-content">
+      <h2>Ollama Voice Assistant<br><span class="gradient-text">Chrome Extension</span></h2>
+      <p>Speak your code. The Chrome extension adds voice commands and speech-to-code to your editor.</p>
+
+      <div class="voice-features">
+        <div class="voice-feature">
+          <div class="voice-feature-icon">🎤</div>
+          <h4>Speech Recognition</h4>
+          <p>Native Web Speech API. No external APIs.</p>
+        </div>
+        <div class="voice-feature">
+          <div class="voice-feature-icon">⚡</div>
+          <h4>Instant Commands</h4>
+          <p>Execute editor commands by voice.</p>
+        </div>
+        <div class="voice-feature">
+          <div class="voice-feature-icon">🔤</div>
+          <h4>Code Insertion</h4>
+          <p>Say code, watch it appear in editor.</p>
+        </div>
+        <div class="voice-feature">
+          <div class="voice-feature-icon">🌍</div>
+          <h4>Multi-Language</h4>
+          <p>Support for 8+ languages.</p>
+        </div>
+      </div>
+
+      <div class="cta-buttons" style="margin-top: 50px;">
+        <a href="https://chrome.google.com/webstore/" class="btn btn-primary">Install from Chrome Store</a>
+        <a href="#" class="btn btn-secondary">View Documentation</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-links">
+        <a href="https://github.com/alejandrodelarocha/vscode-ollama-fork">GitHub</a>
+        <a href="/wpbasic">WPBasic</a>
+        <a href="#">Documentation</a>
+        <a href="#">Security</a>
+        <a href="#">Privacy</a>
+      </div>
+      <p class="footer-note">© 2026 Rocha Studios. MIT License. Built with Ollama & VS Code.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WPBasic - WordPress AI Completion & Security</title>
+  <meta name="description" content="VS Code fork optimized for WordPress development. AI completions for PHP, auto security QA, theme/plugin patterns, REST API helpers.">
+  <meta name="keywords" content="wordpress, vscode, php, ollama, ai, completion, security, development">
+  <meta property="og:title" content="WPBasic - WordPress AI Code Completion">
+  <meta property="og:description" content="VS Code optimized for WordPress development with Ollama AI completions and security analysis.">
+  <meta property="og:url" content="https://rochastudios.ai/wpbasic">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #24292e;
+      background: #ffffff;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0073aa 0%, #005a87 100%);
+      color: white;
+      padding: 20px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #0073aa 0%, #00a0d2 100%);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    nav {
+      display: flex;
+      gap: 30px;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: #00d4ff;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+      padding: 80px 20px;
+      text-align: center;
+    }
+
+    .hero-content {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+      color: #0073aa;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      font-size: 20px;
+      color: #666;
+      margin-bottom: 40px;
+      line-height: 1.5;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 60px;
+      flex-wrap: wrap;
+    }
+
+    button, .btn {
+      padding: 14px 32px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0073aa 0%, #005a87 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 115, 170, 0.3);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #0073aa;
+      border: 2px solid #0073aa;
+    }
+
+    .btn-secondary:hover {
+      background: #0073aa;
+      color: white;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #0073aa;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .features {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 20px;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 36px;
+      margin-bottom: 50px;
+      color: #0073aa;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+    }
+
+    .feature-card {
+      background: white;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      padding: 30px;
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      border-color: #0073aa;
+      box-shadow: 0 8px 24px rgba(0, 115, 170, 0.1);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #0073aa 0%, #00a0d2 100%);
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: white;
+    }
+
+    .feature-card h3 {
+      font-size: 20px;
+      margin-bottom: 15px;
+      color: #0073aa;
+    }
+
+    .feature-card p {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .qa-section {
+      background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+      padding: 80px 20px;
+    }
+
+    .qa-content {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .qa-title {
+      text-align: center;
+      font-size: 36px;
+      margin-bottom: 50px;
+      color: #0073aa;
+    }
+
+    .qa-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+    }
+
+    .qa-item {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      border: 2px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .qa-item:hover {
+      border-color: #d32f2f;
+      background: rgba(211, 47, 47, 0.05);
+    }
+
+    .qa-item h4 {
+      color: #d32f2f;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+
+    .qa-item p {
+      color: #666;
+      font-size: 13px;
+    }
+
+    .code-section {
+      background: linear-gradient(135deg, #0073aa 0%, #005a87 100%);
+      color: white;
+      padding: 80px 20px;
+      text-align: center;
+    }
+
+    .code-content {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .code-section h2 {
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+
+    .code-section p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 40px;
+    }
+
+    .code-examples {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      text-align: left;
+      margin-top: 40px;
+    }
+
+    .code-example {
+      background: rgba(0,0,0,0.2);
+      padding: 20px;
+      border-radius: 6px;
+      border-left: 3px solid #00d4ff;
+    }
+
+    .code-example h4 {
+      color: #00d4ff;
+      margin-bottom: 10px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .code-example p {
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+      color: #c0caf5;
+      margin: 0;
+    }
+
+    .use-cases {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 20px;
+    }
+
+    .use-cases-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+    }
+
+    .use-case {
+      background: white;
+      border: 1px solid #e1e4e8;
+      padding: 30px;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .use-case:hover {
+      border-color: #0073aa;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .use-case h4 {
+      color: #0073aa;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+
+    .use-case p {
+      color: #666;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    footer {
+      background: #f5f5f5;
+      padding: 40px 20px;
+      text-align: center;
+      border-top: 1px solid #e1e4e8;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: #666;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .footer-links a:hover {
+      color: #0073aa;
+    }
+
+    .footer-note {
+      color: #999;
+      font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 32px;
+      }
+
+      .subtitle {
+        font-size: 16px;
+      }
+
+      nav {
+        display: none;
+      }
+
+      .cta-buttons {
+        flex-direction: column;
+      }
+
+      .features-grid,
+      .qa-grid,
+      .use-cases-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .code-examples {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-icon">W</div>
+        WPBasic
+      </div>
+      <nav>
+        <a href="#features">Features</a>
+        <a href="#qa">Security</a>
+        <a href="#code">Code Patterns</a>
+        <a href="#use-cases">Use Cases</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <div class="badge">WordPress Development Edition</div>
+      <h1>AI Completions for WordPress</h1>
+      <p class="subtitle">VS Code optimized for PHP, security-first QA, and modern WordPress patterns. Theme & plugin development reimagined.</p>
+      <div class="cta-buttons">
+        <a href="#download" class="btn btn-primary">Download WPBasic</a>
+        <a href="/ollama" class="btn btn-secondary">See Standard Ollama</a>
+      </div>
+      <p style="color: #999; font-size: 14px;">PHP Completions • Security QA • REST API • Custom Post Types</p>
+    </div>
+  </section>
+
+  <section id="features" class="features">
+    <h2 class="section-title">WordPress-Optimized</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🐘</div>
+        <h3>PHP Completions</h3>
+        <p>AI-powered completions for WordPress PHP. Understand hooks, filters, and WP functions.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔐</div>
+        <h3>Security-First QA</h3>
+        <p>Real-time detection of common WordPress security issues: XSS, SQL injection, nonce validation.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📦</div>
+        <h3>Theme Development</h3>
+        <p>Pre-configured for theme development. Template hierarchy, hooks, and child theme patterns.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔌</div>
+        <h3>Plugin Patterns</h3>
+        <p>Common plugin patterns pre-loaded. Actions, filters, capabilities, and settings APIs.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚙️</div>
+        <h3>REST API Helper</h3>
+        <p>Custom endpoints, authentication, permissions. Register routes and handle requests.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Performance Tuning</h3>
+        <p>Tips for caching, optimization, and database queries. Keep WordPress fast.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="qa" class="qa-section">
+    <div class="qa-content">
+      <h2 class="qa-title">WordPress Security QA</h2>
+      <p style="text-align: center; color: #666; margin-bottom: 50px; font-size: 16px;">
+        Real-time security analysis detects WordPress-specific vulnerabilities.
+      </p>
+      <div class="qa-grid">
+        <div class="qa-item">
+          <h4>🚫 XSS Prevention</h4>
+          <p>Detects missing output escaping. Suggests wp_kses_post(), esc_html(), esc_attr().</p>
+        </div>
+        <div class="qa-item">
+          <h4>🛡️ Nonce Validation</h4>
+          <p>Warns when $_POST is used without nonce checks. Includes wp_verify_nonce() suggestions.</p>
+        </div>
+        <div class="qa-item">
+          <h4>💾 SQL Injection</h4>
+          <p>Catches unescaped database queries. Recommends $wpdb->prepare() usage.</p>
+        </div>
+        <div class="qa-item">
+          <h4>🔑 Capability Checks</h4>
+          <p>Identifies missing current_user_can() checks on sensitive operations.</p>
+        </div>
+        <div class="qa-item">
+          <h4>📝 Sanitization</h4>
+          <p>Detects unsanitized input. Suggests sanitize_text_field(), absint(), etc.</p>
+        </div>
+        <div class="qa-item">
+          <h4>🔒 Data Validation</h4>
+          <p>Warns about missing validation. Custom validation function suggestions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="code" class="code-section">
+    <div class="code-content">
+      <h2>Common WordPress Patterns</h2>
+      <p>AI completions understand WordPress conventions. Start typing and let AI finish your code.</p>
+
+      <div class="code-examples">
+        <div class="code-example">
+          <h4>Custom Post Type</h4>
+          <p>register_post_type( 'book', [...<br/>
+             'public' => true,<br/>
+             'supports' => ['title', 'editor', 'thumbnail']<br/>
+          ] );</p>
+        </div>
+        <div class="code-example">
+          <h4>Custom Taxonomy</h4>
+          <p>register_taxonomy( 'genre', 'book', [...<br/>
+             'hierarchical' => true,<br/>
+             'show_admin_column' => true<br/>
+          ] );</p>
+        </div>
+        <div class="code-example">
+          <h4>REST Endpoint</h4>
+          <p>register_rest_route( 'books/v1',<br/>
+             '/list', [...<br/>
+             'callback' => 'get_books'<br/>
+          ] );</p>
+        </div>
+        <div class="code-example">
+          <h4>Nonce Verification</h4>
+          <p>if ( !isset($_POST['nonce'])<br/>
+             || !wp_verify_nonce($_POST['nonce'])<br/>
+             ) wp_die('Security check failed');</p>
+        </div>
+        <div class="code-example">
+          <h4>Action Hook</h4>
+          <p>add_action( 'save_post_book',<br/>
+             'my_save_callback',<br/>
+             10, 2 );</p>
+        </div>
+        <div class="code-example">
+          <h4>Query Posts</h4>
+          <p>$posts = new WP_Query( [...<br/>
+             'post_type' => 'book',<br/>
+             'posts_per_page' => 10<br/>
+          ] );</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="use-cases" class="use-cases">
+    <h2 class="section-title">Perfect For</h2>
+    <div class="use-cases-grid">
+      <div class="use-case">
+        <h4>🎨 Theme Developers</h4>
+        <p>Build faster with AI-powered PHP completions. Template hierarchy and hook patterns pre-loaded.</p>
+      </div>
+      <div class="use-case">
+        <h4>🔌 Plugin Developers</h4>
+        <p>Scaffold plugins with common patterns. Actions, filters, and settings handled automatically.</p>
+      </div>
+      <div class="use-case">
+        <h4>🚀 WordPress Agencies</h4>
+        <p>Accelerate client projects. Team standardization with pre-configured development environment.</p>
+      </div>
+      <div class="use-case">
+        <h4>🛒 WooCommerce Developers</h4>
+        <p>Commerce hooks and product patterns. Custom checkout flows and integration helpers.</p>
+      </div>
+      <div class="use-case">
+        <h4>🔒 Security-First Teams</h4>
+        <p>Real-time security QA prevents vulnerabilities. OWASP WordPress best practices built-in.</p>
+      </div>
+      <div class="use-case">
+        <h4>📚 WordPress Educators</h4>
+        <p>Teach best practices with AI feedback. Students learn security and patterns instantly.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-links">
+        <a href="/ollama">Ollama (Standard)</a>
+        <a href="#">Documentation</a>
+        <a href="#">Security Guide</a>
+        <a href="#">WordPress Patterns</a>
+        <a href="#">Privacy</a>
+      </div>
+      <p class="footer-note">© 2026 Rocha Studios. Part of the Ollama VS Code project. MIT License.</p>
+    </div>
+  </footer>
+</body>
+</html>
