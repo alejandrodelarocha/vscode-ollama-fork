@@ -203,6 +203,17 @@
           "type": "boolean",
           "default": true,
           "description": "Show 5 helpful suggestions throughout the day (Lovable-style)"
+        },
+        "vscodeOllama.licenseToken": {
+          "type": "string",
+          "default": "",
+          "description": "License token for Ollama completions (get from https://license.rochastudios.ai)",
+          "scope": "machine"
+        },
+        "vscodeOllama.licenseRequired": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require valid license token for completions"
         }
       }
     }

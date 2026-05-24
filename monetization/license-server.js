@@ -9,6 +9,68 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = express();
+
+// Stripe webhook MUST come before express.json() to access raw body
+app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  try {
+    const event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      const { userId, tier } = session.metadata;
+
+      // Update subscription
+      const now = new Date();
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
+
+      const subStmt = db.prepare(`
+        INSERT OR REPLACE INTO subscriptions (id, userId, tier, stripeCustomerId, stripeSubscriptionId, status, currentPeriodStart, currentPeriodEnd)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      subStmt.run(
+        generateId(),
+        userId,
+        tier,
+        session.customer,
+        session.subscription,
+        'active',
+        now.toISOString(),
+        nextMonth.toISOString()
+      );
+
+      // Grant monthly credits
+      const PRICING_TIERS = { Free: { cost: 0 }, Starter: { cost: 5, monthlyCredits: 1000 }, Professional: { cost: 15, monthlyCredits: 5000 }, Business: { cost: 50, monthlyCredits: 20000 }, Enterprise: { cost: 'custom' } };
+      const planCredits = PRICING_TIERS[tier]?.monthlyCredits || 0;
+      db.prepare('UPDATE credits SET balance = balance + ? WHERE userId = ?')
+        .run(planCredits, userId);
+    }
+
+    if (event.type === 'payment_intent.succeeded') {
+      const paymentIntent = event.data.object;
+      const userId = paymentIntent.metadata?.userId;
+
+      if (userId) {
+        const payment = db.prepare('SELECT creditsGranted FROM payments WHERE stripePaymentIntentId = ?').get(paymentIntent.id);
+        if (payment) {
+          db.prepare('UPDATE credits SET balance = balance + ?, totalPurchased = totalPurchased + ? WHERE userId = ?')
+            .run(payment.creditsGranted, payment.creditsGranted, userId);
+          db.prepare('UPDATE payments SET status = ? WHERE stripePaymentIntentId = ?')
+            .run('succeeded', paymentIntent.id);
+        }
+      }
+    }
+
+    res.json({ received: true });
+  } catch (err) {
+    console.error('Webhook error:', err.message);
+    res.status(400).json({ error: err.message });
+  }
+});
+
 app.use(express.json());
 app.use(cors());
 
@@ -384,69 +446,6 @@ app.post('/api/usage/deduct', verifyToken, (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
-  }
-});
-
-// Stripe webhook
-app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  try {
-    const event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object;
-      const { userId, tier } = session.metadata;
-
-      // Update subscription
-      const now = new Date();
-      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
-
-      const subStmt = db.prepare(`
-        INSERT OR REPLACE INTO subscriptions (id, userId, tier, stripeCustomerId, stripeSubscriptionId, status, currentPeriodStart, currentPeriodEnd)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `);
-
-      subStmt.run(
-        generateId(),
-        userId,
-        tier,
-        session.customer,
-        session.subscription,
-        'active',
-        now.toISOString(),
-        nextMonth.toISOString()
-      );
-
-      // Grant monthly credits
-      const planCredits = PRICING_TIERS[tier].monthlyCredits || 0;
-      db.prepare('UPDATE credits SET balance = balance + ? WHERE userId = ?')
-        .run(planCredits, userId);
-    }
-
-    if (event.type === 'payment_intent.succeeded') {
-      const paymentIntent = event.data.object;
-      const { userId } = paymentIntent.metadata;
-
-      // Get payment record
-      const payment = db.prepare('SELECT creditsGranted FROM payments WHERE stripePaymentIntentId = ?').get(paymentIntent.id);
-
-      if (payment) {
-        // Grant credits
-        db.prepare('UPDATE credits SET balance = balance + ?, totalPurchased = totalPurchased + ? WHERE userId = ?')
-          .run(payment.creditsGranted, payment.creditsGranted, userId);
-
-        // Mark payment as succeeded
-        db.prepare('UPDATE payments SET status = ? WHERE stripePaymentIntentId = ?')
-          .run('succeeded', paymentIntent.id);
-      }
-    }
-
-    res.json({ received: true });
-  } catch (err) {
-    console.error('Webhook error:', err);
-    res.status(400).json({ error: err.message });
   }
 });
 

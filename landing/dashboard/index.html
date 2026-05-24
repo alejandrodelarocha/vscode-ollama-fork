@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ollama - Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+    .header {
+      background: linear-gradient(135deg, #61afef 0%, #56b6c2 100%);
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+    }
+    .header h1 { font-size: 28px; margin-bottom: 10px; }
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .card h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: #333;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 15px;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .stat {
+      background: #f9f9f9;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #61afef;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #61afef;
+      margin-bottom: 5px;
+    }
+    .stat-label {
+      font-size: 14px;
+      color: #999;
+    }
+    .token-box {
+      background: #f0f8ff;
+      border: 2px solid #61afef;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 15px 0;
+      font-family: 'Monaco', monospace;
+      word-break: break-all;
+      position: relative;
+    }
+    .token-box .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 8px 16px;
+      background: #61afef;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .btn {
+      padding: 12px 24px;
+      background: #61afef;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.3s;
+      display: inline-block;
+    }
+    .btn:hover { background: #56b6c2; }
+    .btn-secondary {
+      background: #999;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+    .btn-secondary:hover { background: #777; }
+    .warning {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .loading { text-align: center; color: #999; }
+    .error { color: #c33; background: #fee; padding: 15px; border-radius: 8px; }
+    .success { color: #3a3; background: #efe; padding: 15px; border-radius: 8px; }
+    .logout-btn {
+      background: #999;
+    }
+    .logout-btn:hover { background: #777; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🚀 Ollama License Dashboard</h1>
+    <p>Manage your subscription and license tokens</p>
+  </div>
+
+  <div class="container">
+    <div id="content" class="loading">Loading your account...</div>
+  </div>
+
+  <script>
+    const API_BASE = 'https://license.rochastudios.ai';
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      window.location.href = '/auth';
+    }
+
+    async function loadDashboard() {
+      try {
+        const res = await fetch(`${API_BASE}/api/user/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.status === 401) {
+          localStorage.removeItem('token');
+          window.location.href = '/auth';
+          return;
+        }
+
+        const user = await res.json();
+
+        // Get subscription
+        const subRes = await fetch(`${API_BASE}/api/subscriptions/current`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const subscription = subRes.ok ? await subRes.json() : null;
+
+        // Get credits
+        const creditsRes = await fetch(`${API_BASE}/api/credits/balance`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const credits = creditsRes.ok ? await creditsRes.json() : { balance: 0 };
+
+        // Get license
+        const licenseRes = await fetch(`${API_BASE}/api/licenses/current`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const license = licenseRes.ok ? await licenseRes.json() : null;
+
+        renderDashboard(user, subscription, credits, license);
+      } catch (err) {
+        document.getElementById('content').innerHTML = `<div class="error">Failed to load dashboard: ${err.message}</div>`;
+      }
+    }
+
+    function renderDashboard(user, subscription, credits, license) {
+      const tier = subscription?.tier || 'Free';
+      const html = `
+        <div class="card">
+          <h2>Account Information</h2>
+          <p><strong>Email:</strong> ${user.email}</p>
+          <p><strong>Plan:</strong> <span style="color: #61afef; font-weight: bold;">${tier}</span></p>
+          <button class="btn btn-secondary" style="margin-top: 20px;" onclick="logout()">Log Out</button>
+        </div>
+
+        <div class="card">
+          <h2>Credits & Usage</h2>
+          <div class="stat-grid">
+            <div class="stat">
+              <div class="stat-value">${credits.balance.toFixed(2)}</div>
+              <div class="stat-label">Credits Available</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value">$${(credits.balance * 0.01).toFixed(2)}</div>
+              <div class="stat-label">USD Value</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value">${credits.totalUsed || 0}</div>
+              <div class="stat-label">Total Used</div>
+            </div>
+          </div>
+          ${tier === 'Free' ? '<div class="warning">🆓 Free plan: 100 free completions/month</div>' : ''}
+        </div>
+
+        <div class="card">
+          <h2>License Token</h2>
+          <p style="color: #666; margin-bottom: 15px;">Copy this token into VS Code settings to enable Ollama completions:</p>
+          ${license ? `
+            <div class="token-box">
+              ${license.licenseKey}
+              <button class="copy-btn" onclick="copyToken('${license.licenseKey}')">Copy</button>
+            </div>
+            <p style="font-size: 12px; color: #999; margin-top: 10px;">
+              Expires: ${new Date(license.expiresAt).toLocaleDateString()}
+            </p>
+          ` : '<div style="color: #999;">Generating license token...</div>'}
+        </div>
+
+        <div class="card">
+          <h2>Setup Instructions</h2>
+          <ol style="line-height: 1.8; color: #666;">
+            <li>Install VS Code Ollama extension from GitHub</li>
+            <li>Copy your license token above</li>
+            <li>Open VS Code Settings (Cmd+,)</li>
+            <li>Search "Ollama License Token"</li>
+            <li>Paste the token and enable "License Required"</li>
+            <li>Start typing code - completions appear automatically!</li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <h2>Subscription</h2>
+          ${subscription ? `
+            <div class="stat-grid">
+              <div class="stat">
+                <div class="stat-value">${subscription.tier}</div>
+                <div class="stat-label">Current Plan</div>
+              </div>
+              <div class="stat">
+                <div class="stat-value">${subscription.status}</div>
+                <div class="stat-label">Status</div>
+              </div>
+            </div>
+            <button class="btn" onclick="openPlans()">View All Plans</button>
+          ` : `
+            <p style="color: #666; margin-bottom: 15px;">Upgrade your plan to get unlimited completions and priority support.</p>
+            <button class="btn" onclick="openPlans()">View Plans & Pricing</button>
+          `}
+        </div>
+      `;
+
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function copyToken(token) {
+      navigator.clipboard.writeText(token).then(() => {
+        alert('✓ Token copied to clipboard!');
+      });
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      window.location.href = '/auth';
+    }
+
+    function openPlans() {
+      window.location.href = '/pricing';
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>

@@ -4,8 +4,10 @@
  */
 
 import * as axios from 'axios';
+import * as vscode from 'vscode';
 import { CancellationToken, InlineCompletionItem, InlineCompletionItemProvider, Position, TextDocument } from 'vscode';
 import { ContextAnalyzer } from './contextAnalyzer';
+import { LicenseVerifier } from './licenseVerifier';
 
 interface OllamaConfig {
   host: string;
@@ -21,12 +23,15 @@ interface OllamaConfig {
 export class OllamaInlineCompletionProvider implements InlineCompletionItemProvider {
   private config: OllamaConfig;
   private contextAnalyzer: ContextAnalyzer;
+  private licenseVerifier: LicenseVerifier;
   private lastRequestTime = 0;
   private pendingRequests = new Map<string, Promise<InlineCompletionItem[]>>();
+  private licenseCheckTime = 0;
 
   constructor(config: OllamaConfig) {
     this.config = config;
     this.contextAnalyzer = new ContextAnalyzer(config.contextLines);
+    this.licenseVerifier = new LicenseVerifier();
   }
 
   async provideInlineCompletionItems(
@@ -35,8 +40,28 @@ export class OllamaInlineCompletionProvider implements InlineCompletionItemProvi
     _completionContext: any,
     token: CancellationToken
   ): Promise<InlineCompletionItem[]> {
-    // Debounce rapid requests
+    // Check license (once per hour)
     const now = Date.now();
+    if (now - this.licenseCheckTime > 60 * 60 * 1000) {
+      const licenseRequired = vscode.workspace
+        .getConfiguration('vscodeOllama')
+        .get('licenseRequired', false);
+
+      if (licenseRequired) {
+        const licenseToken = vscode.workspace
+          .getConfiguration('vscodeOllama')
+          .get('licenseToken', '');
+
+        const status = await this.licenseVerifier.verifyLicense(licenseToken);
+        if (!status.valid) {
+          this.licenseVerifier.showLicenseRequired();
+          return [];
+        }
+      }
+      this.licenseCheckTime = now;
+    }
+
+    // Debounce rapid requests
     if (now - this.lastRequestTime < this.config.debounceMs) {
       return [];
     }
