@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ollama VS Code - Setup Guide</title>
+  <meta name="description" content="Complete setup guide for Ollama VS Code. Installation, GPU configuration, extension setup, and troubleshooting.">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #24292e;
+      background: #ffffff;
+    }
+
+    header {
+      background: linear-gradient(135deg, #282c34 0%, #1e2228 100%);
+      color: white;
+      padding: 40px 20px;
+      text-align: center;
+      border-bottom: 1px solid #3e4451;
+    }
+
+    header h1 {
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+
+    header p {
+      color: #abb2bf;
+      margin: 0;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .toc {
+      background: #f6f8fa;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      padding: 30px;
+      margin-bottom: 60px;
+    }
+
+    .toc h2 {
+      color: #282c34;
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+
+    .toc ol {
+      list-style: decimal;
+      margin-left: 20px;
+      color: #666;
+    }
+
+    .toc li {
+      margin-bottom: 10px;
+    }
+
+    .toc a {
+      color: #61afef;
+      text-decoration: none;
+    }
+
+    .toc a:hover {
+      text-decoration: underline;
+    }
+
+    .section {
+      margin-bottom: 80px;
+    }
+
+    h2 {
+      color: #282c34;
+      font-size: 28px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #61afef;
+    }
+
+    h3 {
+      color: #282c34;
+      font-size: 20px;
+      margin-top: 30px;
+      margin-bottom: 15px;
+    }
+
+    p {
+      color: #666;
+      margin-bottom: 15px;
+      line-height: 1.8;
+    }
+
+    .step-box {
+      background: #f6f8fa;
+      border-left: 4px solid #61afef;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    .step-box h4 {
+      color: #282c34;
+      margin-bottom: 10px;
+    }
+
+    .step-box p {
+      margin: 0;
+      color: #666;
+    }
+
+    code {
+      background: #f6f8fa;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 13px;
+      color: #d73a49;
+    }
+
+    pre {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 20px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 20px 0;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .warning {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+      color: #856404;
+    }
+
+    .success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-left: 4px solid #28a745;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+      color: #155724;
+    }
+
+    .info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      border-left: 4px solid #17a2b8;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+      color: #0c5460;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      border: 1px solid #e1e4e8;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .comparison-table th {
+      background: #f6f8fa;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      color: #282c34;
+      border-bottom: 1px solid #e1e4e8;
+    }
+
+    .comparison-table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #e1e4e8;
+      color: #666;
+    }
+
+    .comparison-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    ul, ol {
+      margin-left: 20px;
+      color: #666;
+      margin-bottom: 15px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    strong {
+      color: #282c34;
+    }
+
+    .troubleshooting {
+      display: grid;
+      gap: 20px;
+    }
+
+    .troubleshooting-item {
+      border: 1px solid #e1e4e8;
+      padding: 20px;
+      border-radius: 6px;
+      background: white;
+    }
+
+    .troubleshooting-item h4 {
+      color: #d73a49;
+      margin-bottom: 10px;
+    }
+
+    .troubleshooting-item p {
+      margin: 0;
+      color: #666;
+      font-size: 13px;
+    }
+
+    .keyboard-shortcut {
+      display: inline-block;
+      background: white;
+      border: 1px solid #d1d5da;
+      border-radius: 3px;
+      padding: 3px 8px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #24292e;
+      margin: 0 4px;
+    }
+
+    footer {
+      background: #f6f8fa;
+      padding: 40px 20px;
+      text-align: center;
+      border-top: 1px solid #e1e4e8;
+      margin-top: 80px;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .footer-links a {
+      color: #666;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .footer-links a:hover {
+      color: #61afef;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+
+      h2 {
+        font-size: 22px;
+      }
+
+      h3 {
+        font-size: 16px;
+      }
+
+      pre {
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Ollama VS Code Setup Guide</h1>
+    <p>Complete installation and configuration instructions</p>
+  </header>
+
+  <div class="container">
+    <div class="toc">
+      <h2>Table of Contents</h2>
+      <ol>
+        <li><a href="#system-check">System Requirements</a></li>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#gpu-setup">GPU Server Setup</a></li>
+        <li><a href="#configuration">Configuration</a></li>
+        <li><a href="#extension">Chrome Extension Setup</a></li>
+        <li><a href="#verify">Verify Installation</a></li>
+        <li><a href="#troubleshooting">Troubleshooting</a></li>
+      </ol>
+    </div>
+
+    <div class="section" id="system-check">
+      <h2>System Requirements</h2>
+
+      <h3>Minimum Requirements</h3>
+      <ul>
+        <li>2GB RAM (4GB+ recommended)</li>
+        <li>500MB available disk space</li>
+        <li>Intel Core i5 or equivalent (2013+)</li>
+        <li>Modern web browser (Chrome 90+, Firefox 88+, Safari 14+)</li>
+      </ul>
+
+      <h3>Platform-Specific</h3>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Platform</th>
+            <th>Version</th>
+            <th>Processor</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>macOS</strong></td>
+            <td>10.15 Catalina+</td>
+            <td>Intel or Apple Silicon</td>
+            <td>Universal binary included</td>
+          </tr>
+          <tr>
+            <td><strong>Linux</strong></td>
+            <td>Ubuntu 20.04+, Fedora 32+</td>
+            <td>x64</td>
+            <td>glibc 2.31+</td>
+          </tr>
+          <tr>
+            <td><strong>Windows</strong></td>
+            <td>Windows 10 / 11</td>
+            <td>x64</td>
+            <td>.NET Framework 4.5+</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Network Requirements</h3>
+      <ul>
+        <li>Internet connection to reach GPU server (142.54.161.210:11434)</li>
+        <li>Firewall rule allowing outbound on port 11434</li>
+        <li>Optional: VPN if using corporate network</li>
+      </ul>
+
+      <div class="step-box">
+        <h4>Check Your System</h4>
+        <p>
+          <strong>macOS:</strong> Click Apple menu → About This Mac<br>
+          <strong>Linux:</strong> <code>uname -a</code><br>
+          <strong>Windows:</strong> Settings → System → About
+        </p>
+      </div>
+    </div>
+
+    <div class="section" id="installation">
+      <h2>Installation</h2>
+
+      <h3>macOS</h3>
+      <ol>
+        <li>Download the appropriate installer (Intel or Apple Silicon)</li>
+        <li>Open the downloaded <code>.dmg</code> file</li>
+        <li>Drag "Ollama VS Code" to the Applications folder</li>
+        <li>Open Applications and launch "Ollama VS Code"</li>
+        <li>Grant microphone permission when prompted (for voice commands)</li>
+      </ol>
+
+      <div class="success">
+        <strong>✓ Installation Complete</strong> - VS Code Ollama should open automatically.
+      </div>
+
+      <h3>Linux</h3>
+      <pre><code># Extract the archive
+unzip ollama-vscode-linux-x64.zip -d ~/.local/share/
+
+# Create desktop shortcut (optional)
+cp ollama-vscode.desktop ~/.local/share/applications/
+
+# Launch
+~/.local/share/ollama-vscode/bin/code</code></pre>
+
+      <div class="info">
+        <strong>💡 Tip:</strong> Add to PATH for easy command-line access: <code>export PATH=$PATH:~/.local/share/ollama-vscode/bin</code>
+      </div>
+
+      <h3>Windows</h3>
+      <ol>
+        <li>Download the Windows Installer</li>
+        <li>Run <code>ollama-vscode-setup.exe</code></li>
+        <li>Follow the installation wizard</li>
+        <li>Grant microphone permission when prompted</li>
+        <li>Launch from Start menu or desktop shortcut</li>
+      </ol>
+
+      <div class="warning">
+        <strong>⚠️ Windows Defender:</strong> May show a warning. Click "More info" then "Run anyway" to proceed.
+      </div>
+    </div>
+
+    <div class="section" id="gpu-setup">
+      <h2>GPU Server Configuration</h2>
+
+      <h3>Option 1: Use Public GPU Server (Default)</h3>
+      <p>The default configuration connects to Rocha Studios' public GPU server at <code>142.54.161.210:11434</code>. This is qwen3:14b, optimized for fast completions.</p>
+
+      <div class="step-box">
+        <h4>Verify Connection</h4>
+        <p>
+          Open VS Code and run:<br>
+          <span class="keyboard-shortcut">Ctrl</span> + <span class="keyboard-shortcut">Shift</span> + <span class="keyboard-shortcut">P</span> (Windows/Linux) or <span class="keyboard-shortcut">Cmd</span> + <span class="keyboard-shortcut">Shift</span> + <span class="keyboard-shortcut">P</span> (macOS)<br>
+          Type: <code>Ollama: Check Status</code>
+        </p>
+      </div>
+
+      <h3>Option 2: Run Your Own GPU Server</h3>
+      <p>For privacy or performance, run Ollama locally on your own GPU hardware.</p>
+
+      <h4>Requirements</h4>
+      <ul>
+        <li>NVIDIA GPU with CUDA 11.8+ OR AMD with ROCm OR macOS with Metal (M1+)</li>
+        <li>8GB+ VRAM recommended (14GB for qwen3:14b)</li>
+        <li>30GB disk space for model</li>
+      </ul>
+
+      <h4>Installation</h4>
+      <pre><code># macOS / Linux
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Windows (download from https://ollama.ai/download)
+# Then run: ollama serve
+
+# Pull the model
+ollama pull qwen3:14b
+
+# Start server
+ollama serve</code></pre>
+
+      <h4>Configure VS Code to Use Local Server</h4>
+      <ol>
+        <li>Open VS Code Settings (<span class="keyboard-shortcut">Cmd</span>/<span class="keyboard-shortcut">Ctrl</span> + <span class="keyboard-shortcut">,</span>)</li>
+        <li>Search: "Ollama Host"</li>
+        <li>Set to: <code>http://localhost:11434</code></li>
+        <li>Run "Ollama: Check Status" to verify</li>
+      </ol>
+
+      <div class="success">
+        <strong>✓ GPU Server Ready</strong> - Completions will now use your local server.
+      </div>
+    </div>
+
+    <div class="section" id="configuration">
+      <h2>Configuration</h2>
+
+      <h3>Essential Settings</h3>
+
+      <h4>1. Host & Port</h4>
+      <pre><code>{
+  "vscodeOllama.host": "http://142.54.161.210",  // Or localhost:11434 for local
+  "vscodeOllama.port": 11434
+}</code></pre>
+
+      <h4>2. Model Selection</h4>
+      <pre><code>{
+  "vscodeOllama.model": "qwen3:14b"  // Available: mistral:7b, neural-chat, llama3.1:70b
+}</code></pre>
+
+      <h4>3. Completion Quality</h4>
+      <pre><code>{
+  "vscodeOllama.temperature": 0.3,      // 0.0 = deterministic, 1.0 = creative
+  "vscodeOllama.maxTokens": 100,        // Longer = more detailed completions
+  "vscodeOllama.debounceMs": 300,       // Wait 300ms after typing to request
+  "vscodeOllama.timeout": 5000          // Request timeout in milliseconds
+}</code></pre>
+
+      <h4>4. Features</h4>
+      <pre><code>{
+  "vscodeOllama.qaEnabled": true,           // Auto security analysis
+  "vscodeOllama.showDailySuggestions": true // Daily tips
+}</code></pre>
+
+      <h3>Performance Tuning</h3>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th>Recommendation</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Slow Network</strong></td>
+            <td>Increase <code>debounceMs</code> to 500-800ms, reduce <code>maxTokens</code> to 50</td>
+          </tr>
+          <tr>
+            <td><strong>Fast Network</strong></td>
+            <td>Decrease <code>debounceMs</code> to 100-200ms, increase <code>maxTokens</code> to 150</td>
+          </tr>
+          <tr>
+            <td><strong>High Latency</strong></td>
+            <td>Increase <code>timeout</code> to 10000-15000ms</td>
+          </tr>
+          <tr>
+            <td><strong>Less CPU Usage</strong></td>
+            <td>Set <code>temperature</code> to 0.1, increase <code>debounceMs</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section" id="extension">
+      <h2>Chrome Extension Setup</h2>
+
+      <h3>Installation</h3>
+      <ol>
+        <li>Open Chrome and go to <code>chrome://extensions</code></li>
+        <li>Enable "Developer mode" (top right)</li>
+        <li>Click "Load unpacked"</li>
+        <li>Navigate to the extension folder in your VS Code installation</li>
+        <li>Click "Select" to load the extension</li>
+      </ol>
+
+      <div class="info">
+        <strong>💡 Tip:</strong> Production install via Chrome Web Store coming soon. For now, development mode is required.
+      </div>
+
+      <h3>Grant Microphone Permission</h3>
+      <ol>
+        <li>Click the Ollama Voice Assistant icon in your toolbar</li>
+        <li>Click "Start Listening"</li>
+        <li>Browser will prompt for microphone access</li>
+        <li>Click "Allow" to proceed</li>
+      </ol>
+
+      <h3>Configure Language</h3>
+      <p>Default is English (US). Change in extension settings (coming in v1.1).</p>
+
+      <h3>Voice Commands Reference</h3>
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Command</th>
+            <th>Action</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>code [text]</code></td>
+            <td>Insert code at cursor</td>
+            <td>"code function hello() {}"</td>
+          </tr>
+          <tr>
+            <td><code>complete</code></td>
+            <td>Request completion</td>
+            <td>"complete" (at incomplete line)</td>
+          </tr>
+          <tr>
+            <td><code>toggle ollama</code></td>
+            <td>Enable/disable completions</td>
+            <td>"toggle ollama"</td>
+          </tr>
+          <tr>
+            <td><code>check status</code></td>
+            <td>Check GPU connection</td>
+            <td>"check status"</td>
+          </tr>
+          <tr>
+            <td><code>qa</code></td>
+            <td>Toggle security analysis</td>
+            <td>"qa"</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section" id="verify">
+      <h2>Verify Installation</h2>
+
+      <h3>Checklist</h3>
+      <div class="step-box">
+        <h4>✓ All systems ready when:</h4>
+        <ul style="margin: 10px 0 0 0;">
+          <li>VS Code launches without errors</li>
+          <li>"Ollama: Check Status" shows green checkmark</li>
+          <li>Typing triggers completion suggestions (inline)</li>
+          <li>Chrome extension appears in toolbar</li>
+          <li>Saying "code test" inserts text in editor</li>
+        </ul>
+      </div>
+
+      <h3>Test Completion</h3>
+      <ol>
+        <li>Create a new file: <code>test.js</code></li>
+        <li>Type: <code>function hello</code> and wait 1-2 seconds</li>
+        <li>Inline suggestion should appear</li>
+        <li>Press <span class="keyboard-shortcut">Tab</span> to accept</li>
+      </ol>
+
+      <h3>Test Voice</h3>
+      <ol>
+        <li>Click Ollama Voice Assistant in toolbar</li>
+        <li>Click "Start Listening"</li>
+        <li>Say: "code console.log"</li>
+        <li>Text should appear in editor</li>
+      </ol>
+    </div>
+
+    <div class="section" id="troubleshooting">
+      <h2>Troubleshooting</h2>
+
+      <div class="troubleshooting">
+        <div class="troubleshooting-item">
+          <h4>No completions appearing</h4>
+          <p><strong>Solution:</strong> Run "Ollama: Check Status". If it fails, check host/port settings. Verify network can reach 142.54.161.210:11434. Try a simple test file to rule out language-specific issues.</p>
+        </div>
+
+        <div class="troubleshooting-item">
+          <h4>Slow or hanging completions</h4>
+          <p><strong>Solution:</strong> Check network latency: <code>ping 142.54.161.210</code>. Increase timeout in settings if latency >200ms. Reduce maxTokens to 50. Check if GPU server is overloaded (try again in 1 minute).</p>
+        </div>
+
+        <div class="troubleshooting-item">
+          <h4>Voice not working</h4>
+          <p><strong>Solution:</strong> Check microphone in system settings. Grant permission in browser (chrome://settings/content/microphone). Verify localhost:8080 is allowed. Try different browser if Chrome fails.</p>
+        </div>
+
+        <div class="troubleshooting-item">
+          <h4>Extension not loading</h4>
+          <p><strong>Solution:</strong> Verify Developer Mode is enabled. Check console (F12) for errors. Ensure all files are present in extension folder. Try removing and re-adding.</p>
+        </div>
+
+        <div class="troubleshooting-item">
+          <h4>VS Code crashes on startup</h4>
+          <p><strong>Solution:</strong> Delete settings file: <code>~/.config/Code/settings.json</code> (Linux). Restart. Disable extensions except Ollama. Check VS Code version (need 1.85+).</p>
+        </div>
+
+        <div class="troubleshooting-item">
+          <h4>Port already in use</h4>
+          <p><strong>Solution:</strong> If running local Ollama and 11434 is taken, use different port. Edit config: <code>vscodeOllama.port: 11435</code>. Then run: <code>ollama serve --port 11435</code></p>
+        </div>
+
+        <div class="troubleshooting-item">
+          <h4>Microphone permission denied</h4>
+          <p><strong>Solution:</strong> <strong>macOS:</strong> System Preferences → Security & Privacy → Microphone. <strong>Windows:</strong> Settings → Privacy → Microphone. <strong>Linux:</strong> PulseAudio settings. Clear browser site data and retry.</p>
+        </div>
+
+        <div class="troubleshooting-item">
+          <h4>QA analyzer not detecting issues</h4>
+          <p><strong>Solution:</strong> QA only works on PHP files (especially WPBasic). Check file extension. Verify qaEnabled is true in settings. PHP issues must match security patterns (escaping, nonces, SQL injection).</p>
+        </div>
+      </div>
+
+      <h3>Getting Help</h3>
+      <ul>
+        <li><strong>GitHub Issues:</strong> <a href="https://github.com/alejandrodelarocha/vscode-ollama-fork/issues" style="color: #61afef;">Bug reports and feature requests</a></li>
+        <li><strong>Email Support:</strong> support@rochastudios.ai</li>
+        <li><strong>Discord:</strong> Coming soon</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-links">
+      <a href="/download">← Download</a>
+      <a href="/ollama">← Ollama Home</a>
+      <a href="#">Docs</a>
+      <a href="#">FAQ</a>
+      <a href="https://github.com/alejandrodelarocha/vscode-ollama-fork">GitHub</a>
+    </div>
+    <p style="color: #999; font-size: 13px; margin: 0;">© 2026 Rocha Studios • MIT License • Version 1.0.0</p>
+  </footer>
+</body>
+</html>
