@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "Ollama Voice Assistant",
+  "version": "1.0.0",
+  "description": "Voice commands and speech-to-code for Ollama VS Code Editor",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:8080/*",
+    "http://127.0.0.1:8080/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/icon-16.png",
+      "48": "assets/icon-48.png",
+      "128": "assets/icon-128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost:8080/*",
+        "http://127.0.0.1:8080/*",
+        "https://localhost:8443/*"
+      ],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "icons": {
+    "16": "assets/icon-16.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  }
+}

@@ -1,0 +1,74 @@
+.ollama-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.ollama-notification-success {
+  background: #98c379;
+  color: #1e1e1e;
+  border-left: 4px solid #7cb342;
+}
+
+.ollama-notification-error {
+  background: #e06c75;
+  color: white;
+  border-left: 4px solid #c53030;
+}
+
+.ollama-notification-info {
+  background: #61afef;
+  color: white;
+  border-left: 4px solid #1976d2;
+}
+
+.ollama-voice-indicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #98c379;
+  animation: pulse 2s infinite;
+  z-index: 9999;
+  box-shadow: 0 0 8px rgba(152, 195, 121, 0.6);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}

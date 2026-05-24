@@ -1,0 +1,10 @@
+# Icons directory
+# Required files:
+# - icon-16.png (16x16 px)
+# - icon-48.png (48x48 px)
+# - icon-128.png (128x128 px)
+#
+# The icons should have:
+# - Transparent background
+# - Cyan/blue color scheme (#61afef, #56b6c2)
+# - Microphone or voice symbol
