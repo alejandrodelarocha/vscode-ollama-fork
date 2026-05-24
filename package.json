@@ -78,6 +78,26 @@
         "label": "GitHub Light",
         "uiTheme": "vs",
         "path": "./themes/github-light.json"
+      },
+      {
+        "label": "Solarized Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/solarized-dark.json"
+      },
+      {
+        "label": "Solarized Light",
+        "uiTheme": "vs",
+        "path": "./themes/solarized-light.json"
+      },
+      {
+        "label": "Monokai",
+        "uiTheme": "vs-dark",
+        "path": "./themes/monokai.json"
+      },
+      {
+        "label": "Gruvbox Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/gruvbox-dark.json"
       }
     ],
     "commands": [
@@ -197,10 +217,8 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.85.0",
-    "typescript": "^5.3.0",
-    "eslint": "^8.54.0"
-  },
-  "dependencies": {
-    "axios": "^1.6.0"
+    "axios": "^1.16.1",
+    "eslint": "^8.54.0",
+    "typescript": "^5.3.0"
   }
 }
